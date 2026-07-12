@@ -131,11 +131,15 @@ export default function App() {
           <h1 style={{ fontSize: "clamp(36px,7vw,56px)", fontWeight: 900, margin: 0, ...neon("#0ff"), letterSpacing: 4 }}>DARK<span style={neon("#f0f")}>TRADE</span></h1>
           <div style={{ fontSize: 13, color: "#556", marginTop: 8, letterSpacing: 3 }}>주식 시뮬레이터</div>
           <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 16, flexWrap: "wrap" }}>{AI_PLAYERS.map(function(a) { return <span key={a.id} style={TAG(a.color)}>{a.avatar} {a.name}</span>; })}</div>
-          <div style={{ fontSize: 11, color: "#445", marginTop: 8 }}>5명의 AI 트레이더와 경쟁하세요</div>
+          <p style={{ fontSize: 12, color: "#667", marginTop: 16, lineHeight: 1.7, maxWidth: 400, marginLeft: "auto", marginRight: "auto" }}>
+            현금 ${fmtN(INITIAL_CASH)}로 시작해 <span style={{ color: "#0ff" }}>{SEASON_DAYS}일</span> 동안 6개 종목을 매매하는 턴제 시뮬레이터.<br />
+            뉴스가 시세를 흔들고, 5명의 AI 트레이더가 같은 시장에서 최고 수익률을 두고 경쟁합니다.
+          </p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "min(320px,90%)" }}>
           <button style={{ ...BTN("#0ff"), padding: 16, fontSize: 16, letterSpacing: 2 }} onClick={function() { setScreen("modeSelect"); }}>▶ 게임 시작</button>
           <button style={{ ...BTN("#f0f"), padding: 16, fontSize: 16, letterSpacing: 2 }} onClick={function() { if (rankings.length === 0) notify("기록 없음"); else setScreen("result"); }}>◆ 전적 보기</button>
+          <button style={{ ...BTN("#556"), padding: 14, fontSize: 14, letterSpacing: 2 }} onClick={function() { setScreen("help"); }}>❓ 게임 방법</button>
         </div>
       </div>
     </div>
@@ -152,6 +156,57 @@ export default function App() {
           })}
         </div>
         <button style={{ ...BTN("#556"), marginTop: 30 }} onClick={function() { setScreen("menu"); }}>← 뒤로</button>
+      </div>
+    </div>
+  );
+
+  // ── HELP ──
+  if (screen === "help") return (
+    <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "'Courier New', monospace" }}>
+      <div style={{ position: "fixed", inset: 0, background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,255,0.015) 2px,rgba(0,255,255,0.015) 4px)", pointerEvents: "none", zIndex: 100 }} />
+      <div style={{ padding: "30px 20px", maxWidth: 620, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 20 }}>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: "#556", marginBottom: 8 }}>[ 게임 방법 ]</div>
+          <h2 style={{ ...neon("#0ff"), fontSize: 26, margin: 0, letterSpacing: 2 }}>HOW TO PLAY</h2>
+        </div>
+
+        <div style={{ ...PNL, marginBottom: 12 }}><div style={GLW("#0f6")} />
+          <h3 style={{ margin: "0 0 8px", fontSize: 13, ...neon("#0f6") }}>🎯 목표</h3>
+          <p style={{ fontSize: 12, color: "#aab", margin: 0, lineHeight: 1.7 }}>현금 <b style={{ color: "#ff0" }}>${fmtN(INITIAL_CASH)}</b>로 시작해 <b style={{ color: "#0ff" }}>{SEASON_DAYS}일</b> 동안 6개 종목을 매매합니다. 시즌 종료 시 <b style={{ color: "#0f6" }}>수익률</b>이 높을수록 순위가 오르며, 5명의 AI 트레이더를 모두 제치고 1위를 노리세요.</p>
+        </div>
+
+        <div style={{ ...PNL, marginBottom: 12 }}><div style={GLW("#0ff")} />
+          <h3 style={{ margin: "0 0 8px", fontSize: 13, ...neon("#0ff") }}>📈 진행 방식</h3>
+          <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#aab", lineHeight: 1.9 }}>
+            <li>종목을 골라 <b style={{ color: "#0f6" }}>매수</b> / <b style={{ color: "#f33" }}>매도</b> 주문을 냅니다. (전액·50%·25% 프리셋 지원)</li>
+            <li><b style={{ color: "#ff0" }}>▶ 다음 날</b>을 누르면 하루가 지나며 시세·거래량·순위가 갱신됩니다.</li>
+            <li>매일 <b style={{ color: "#ff0" }}>뉴스</b>가 특정 섹터 주가를 끌어올리거나 끌어내립니다.</li>
+            <li>차트·정보·뉴스 탭에서 고저가·PER·시가총액·변동성을 확인하세요.</li>
+          </ul>
+        </div>
+
+        <div style={{ ...PNL, marginBottom: 12 }}><div style={GLW("#f0f")} />
+          <h3 style={{ margin: "0 0 8px", fontSize: 13, ...neon("#f0f") }}>🎮 모드</h3>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 240px", padding: "8px 10px", background: "#0a0e1780", borderRadius: 4, borderLeft: "3px solid #0ff" }}><div style={{ fontSize: 12, fontWeight: 700, color: "#0ff", marginBottom: 3 }}>📈 일반 모드</div><div style={{ fontSize: 11, color: "#778", lineHeight: 1.6 }}>순수 매매 실력으로 승부. 시장을 읽는 눈만이 무기입니다.</div></div>
+            <div style={{ flex: "1 1 240px", padding: "8px 10px", background: "#0a0e1780", borderRadius: 4, borderLeft: "3px solid #f0f" }}><div style={{ fontSize: 12, fontWeight: 700, color: "#f0f", marginBottom: 3 }}>🐋 세력 모드</div><div style={{ fontSize: 11, color: "#778", lineHeight: 1.6 }}>현금을 소모해 특수 능력으로 시세를 직접 흔들 수 있습니다.</div></div>
+          </div>
+        </div>
+
+        <div style={{ ...PNL, marginBottom: 12 }}><div style={GLW("#a8f")} />
+          <h3 style={{ margin: "0 0 8px", fontSize: 13, ...neon("#a8f") }}>🤖 AI 트레이더</h3>
+          {AI_PLAYERS.map(function(a) { return <div key={a.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0", borderBottom: "1px solid #111a2d", fontSize: 12 }}><span style={{ fontSize: 16 }}>{a.avatar}</span><span style={{ color: a.color, fontWeight: 700, width: 96 }}>{a.name}</span><span style={{ color: "#778" }}>{a.desc}</span></div>; })}
+        </div>
+
+        <div style={{ ...PNL, marginBottom: 16 }}><div style={GLW("#f0f")} />
+          <h3 style={{ margin: "0 0 8px", fontSize: 13, ...neon("#f0f") }}>🐋 세력 능력 <span style={{ fontSize: 10, color: "#556", fontWeight: 400 }}>(세력 모드 전용)</span></h3>
+          {Object.entries(ABILITIES).map(function(e) { var ab = e[1]; return <div key={e[0]} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #111a2d" }}><span style={{ fontSize: 16 }}>{ab.icon}</span><div style={{ flex: 1 }}><div style={{ fontSize: 12, fontWeight: 700, color: "#f0f" }}>{ab.name}</div><div style={{ fontSize: 10, color: "#667" }}>{ab.desc}</div></div><div style={{ textAlign: "right", fontSize: 10 }}><div style={{ color: "#ff0" }}>${fmtN(ab.cost)}</div><div style={{ color: "#f33" }}>쿨 {ab.cooldown}턴</div></div></div>; })}
+        </div>
+
+        <div style={{ textAlign: "center" }}>
+          <button style={{ ...BTN("#0ff"), padding: "10px 24px" }} onClick={function() { setScreen("modeSelect"); }}>▶ 게임 시작</button>
+          <button style={{ ...BTN("#556"), padding: "10px 24px", marginLeft: 10 }} onClick={function() { setScreen("menu"); }}>← 뒤로</button>
+        </div>
       </div>
     </div>
   );
