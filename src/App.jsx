@@ -3,6 +3,7 @@ import { INITIAL_CASH, SEASON_DAYS, STOCKS } from "./data/stocks";
 import { ABILITIES } from "./data/abilities";
 import { AI_PLAYERS } from "./data/aiPlayers";
 import { NEWS_POOL } from "./data/news";
+import { TERMS, TERM_CATS } from "./data/terms";
 import { fmtN, fmtD, fmtF, fmtP, won, wonK } from "./utils/format";
 import { genPrice as genP, uid } from "./utils/helpers";
 import { aiDecide } from "./utils/aiEngine";
@@ -40,6 +41,9 @@ export default function App() {
   var [aiPlayers, setAiPlayers] = s([]);
   var [aiActivity, setAiActivity] = s([]);
   var [rightTab, setRightTab] = s("detail");
+  var [learnCat, setLearnCat] = s("L0");
+  var [learnQuery, setLearnQuery] = s("");
+  var [expandedTerm, setExpandedTerm] = s(null);
 
   var notify = _c(function(msg, type) { setNotification({ msg: msg, type: type || "info" }); setTimeout(function() { setNotification(null); }, 2500); }, []);
 
@@ -139,6 +143,7 @@ export default function App() {
         <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "min(320px,90%)" }}>
           <button style={{ ...BTN("#0ff"), padding: 16, fontSize: 16, letterSpacing: 2 }} onClick={function() { setScreen("modeSelect"); }}>▶ 게임 시작</button>
           <button style={{ ...BTN("#f0f"), padding: 16, fontSize: 16, letterSpacing: 2 }} onClick={function() { if (rankings.length === 0) notify("기록 없음"); else setScreen("result"); }}>◆ 전적 보기</button>
+          <button style={{ ...BTN("#0f6"), padding: 14, fontSize: 14, letterSpacing: 2 }} onClick={function() { setScreen("learn"); setLearnCat("L0"); setLearnQuery(""); setExpandedTerm(null); }}>📚 주식 배우기</button>
           <button style={{ ...BTN("#556"), padding: 14, fontSize: 14, letterSpacing: 2 }} onClick={function() { setScreen("help"); }}>❓ 게임 방법</button>
         </div>
       </div>
@@ -210,6 +215,80 @@ export default function App() {
       </div>
     </div>
   );
+
+  // ── LEARN (학습 페이지 / 용어사전) ──
+  if (screen === "learn") {
+    var q = learnQuery.trim();
+    var catColor = function(k) { var c = TERM_CATS.find(function(x) { return x.key === k; }); return c ? c.color : "#0ff"; };
+    var visible = q
+      ? TERMS.filter(function(t) { return (t.term + t.short + t.body + t.example).indexOf(q) >= 0; })
+      : TERMS.filter(function(t) { return t.cat === learnCat; });
+    var jumpTo = function(id) { var t = TERMS.find(function(x) { return x.id === id; }); if (!t) return; setLearnQuery(""); setLearnCat(t.cat); setExpandedTerm(id); };
+    return (
+      <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "'Courier New', monospace" }}>
+        <div style={{ position: "fixed", inset: 0, background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,255,0.015) 2px,rgba(0,255,255,0.015) 4px)", pointerEvents: "none", zIndex: 100 }} />
+        <div style={{ padding: "30px 20px", maxWidth: 680, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 18 }}>
+            <div style={{ fontSize: 10, letterSpacing: 4, color: "#556", marginBottom: 8 }}>[ 주식 배우기 ]</div>
+            <h2 style={{ ...neon("#0f6"), fontSize: 26, margin: 0, letterSpacing: 2 }}>LEARN</h2>
+            <p style={{ fontSize: 11, color: "#667", marginTop: 8, lineHeight: 1.6 }}>주식을 하나도 몰라도 괜찮다. 아래 단계대로 하나씩 읽으면 이 게임의 모든 화면이 이해된다.<br />(예시 수치는 게임 종목 근사치 · 실제 투자 조언 아님)</p>
+          </div>
+
+          {/* 검색 */}
+          <input value={learnQuery} onChange={function(e) { setLearnQuery(e.target.value); setExpandedTerm(null); }} placeholder="용어 검색 (예: PER, 분산투자, 환율)"
+            style={{ width: "100%", background: "#080c14", border: "1px solid #1a2a4a", color: "#c8d6e5", padding: "10px 12px", borderRadius: 6, fontFamily: "inherit", fontSize: 13, outline: "none", marginBottom: 12 }} />
+
+          {/* 카테고리 탭 (검색 중엔 숨김) */}
+          {!q && <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+            {TERM_CATS.map(function(c) {
+              var on = learnCat === c.key;
+              return <button key={c.key} onClick={function() { setLearnCat(c.key); setExpandedTerm(null); }} title={c.desc}
+                style={{ background: on ? c.color + "18" : "transparent", border: "1px solid " + (on ? c.color : "#222"), color: on ? c.color : "#556", padding: "6px 12px", borderRadius: 4, cursor: "pointer", fontFamily: "inherit", fontSize: 11, fontWeight: on ? 700 : 400 }}>{c.label}</button>;
+            })}
+          </div>}
+
+          {!q && (function() { var cc = TERM_CATS.find(function(x) { return x.key === learnCat; }); return cc ? <div style={{ fontSize: 11, color: "#667", marginBottom: 10, paddingLeft: 2 }}>{cc.desc}</div> : null; })()}
+          {q && <div style={{ fontSize: 11, color: "#667", marginBottom: 10 }}>"{q}" 검색 결과 {visible.length}개</div>}
+
+          {/* 용어 카드 목록 */}
+          {visible.length === 0 ? <div style={{ color: "#445", fontSize: 12, padding: "20px 0", textAlign: "center" }}>일치하는 용어가 없다.</div> : visible.map(function(t) {
+            var open = expandedTerm === t.id, cc = catColor(t.cat);
+            return <div key={t.id} style={{ ...PNL, marginBottom: 8, padding: 0, cursor: "pointer" }}>
+              <div style={GLW(cc)} />
+              <div onClick={function() { setExpandedTerm(open ? null : t.id); }} style={{ padding: "11px 14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+                    <span style={{ ...TAG(cc), fontSize: 8 }}>{t.cat}</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: cc }}>{t.term}</span>
+                  </div>
+                  <span style={{ fontSize: 12, color: "#556" }}>{open ? "▲" : "▼"}</span>
+                </div>
+                <div style={{ fontSize: 12, color: "#aab", marginTop: 4, lineHeight: 1.5 }}>{t.short}</div>
+                {open && <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #1a2a4a" }}>
+                  <div style={{ fontSize: 12, color: "#c8d6e5", lineHeight: 1.8 }}>{t.body}</div>
+                  <div style={{ marginTop: 8, padding: "8px 10px", background: "#0a0e1780", borderRadius: 4, borderLeft: "3px solid " + cc }}>
+                    <span style={{ fontSize: 9, color: cc, letterSpacing: 1, fontWeight: 700 }}>예시</span>
+                    <div style={{ fontSize: 11, color: "#99a", marginTop: 3, lineHeight: 1.6 }}>{t.example}</div>
+                  </div>
+                  {t.related && t.related.length > 0 && <div style={{ marginTop: 10 }}>
+                    <span style={{ fontSize: 9, color: "#556", letterSpacing: 1 }}>관련 용어 </span>
+                    <div style={{ display: "inline-flex", gap: 5, flexWrap: "wrap", marginTop: 4 }}>
+                      {t.related.map(function(rid) { var rt = TERMS.find(function(x) { return x.id === rid; }); if (!rt) return null; return <button key={rid} onClick={function(e) { e.stopPropagation(); jumpTo(rid); }} style={{ ...BTN("#556"), padding: "3px 9px", fontSize: 10 }}>{rt.term}</button>; })}
+                    </div>
+                  </div>}
+                </div>}
+              </div>
+            </div>;
+          })}
+
+          <div style={{ textAlign: "center", marginTop: 18 }}>
+            <button style={{ ...BTN("#0ff"), padding: "10px 24px" }} onClick={function() { setScreen("modeSelect"); }}>▶ 게임으로</button>
+            <button style={{ ...BTN("#556"), padding: "10px 24px", marginLeft: 10 }} onClick={function() { setScreen("menu"); }}>← 메뉴</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ── RESULT ──
   if (screen === "result") {
