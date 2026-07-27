@@ -50,11 +50,9 @@ export function tag(c) {
 }
 
 export function secColor(s) {
-  if (s === '기술') return '#0ff';
   if (s === '반도체') return '#7bf';
-  if (s === '금융') return '#ff0';
-  if (s === '에너지') return '#0f6';
-  if (s === '바이오') return '#f5a';
-  if (s === '보안') return '#a8f';
+  if (s === '기술') return '#0ff';
+  if (s === '인터넷') return '#8f0';
+  if (s === '자동차') return '#f80';
   return '#888';
 }
