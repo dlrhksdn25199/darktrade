@@ -57,7 +57,7 @@ export var TERMS = [
     related: ['cash', 'totalasset', 'unrealized'] },
   { id: 'totalasset', term: '총자산', cat: 'L1',
     short: '현금 + 평가금. 내 전 재산.',
-    body: '지금 당장 모든 주식을 팔았다고 가정한 내 전체 돈. 이 게임의 순위는 총자산(정확히는 수익률)으로 매겨진다.',
+    body: '지금 당장 모든 주식을 팔았다고 가정한 내 전체 돈. 이 게임의 순위는 총자산(정확히는 수익률)으로 매겨진다. 이 게임에선 매수해도 총자산이 그대로지만, 실전에선 사고팔 때 수수료·세금이 붙어 총자산이 아주 조금 줄어든다.',
     example: '현금 ₩9,290,000 + 평가금 ₩780,000 = 총자산 ₩10,070,000.',
     related: ['cash', 'equity', 'returnrate'] },
   { id: 'returnrate', term: '수익률', cat: 'L1',

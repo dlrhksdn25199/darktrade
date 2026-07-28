@@ -44,6 +44,9 @@ export default function App() {
   var [learnCat, setLearnCat] = s("L0");
   var [learnQuery, setLearnQuery] = s("");
   var [expandedTerm, setExpandedTerm] = s(null);
+  var [coach, setCoach] = s(null);       // 현재 코칭 팝업 payload (null=없음)
+  var [coachSeen, setCoachSeen] = s({}); // 이미 보여준 코칭 플래그 (세션 단위, intro/firstBuy/firstSell)
+  var [learnFrom, setLearnFrom] = s("menu"); // 학습 화면 진입 출처 (menu | game) — 복귀용
 
   var notify = _c(function(msg, type) { setNotification({ msg: msg, type: type || "info" }); setTimeout(function() { setNotification(null); }, 2500); }, []);
 
@@ -101,15 +104,17 @@ export default function App() {
       setAvgCost(function(a) { return { ...a, [sid]: (pa * pq + price * qty) / (pq + qty) }; });
       setPortfolio(function(p) { return { ...p, [sid]: pq + qty }; });
       setEventLog(function(l) { return l.concat([{ day: day, text: sid + " " + qty + "주 매수 @" + won(price), type: "buy" }]); }); notify(sid + " " + qty + "주 매수 완료", "success");
+      if (!coachSeen.firstBuy) { setCoach({ type: "firstBuy", sid: sid, price: price, qty: qty, cost: price * qty }); setCoachSeen(function(p) { return { ...p, firstBuy: true }; }); }
     } else {
       var held = portfolio[sid] || 0; if (qty > held) { notify("보유 수량 부족!", "error"); return; }
       setCash(function(c) { return c + price * qty; });
       setPortfolio(function(p) { var n = { ...p }; n[sid] = (n[sid] || 0) - qty; if (n[sid] <= 0) delete n[sid]; return n; });
       if (held - qty <= 0) setAvgCost(function(a) { var n = { ...a }; delete n[sid]; return n; });
       setEventLog(function(l) { return l.concat([{ day: day, text: sid + " " + qty + "주 매도 @" + won(price), type: "sell" }]); }); notify(sid + " " + qty + "주 매도 완료", "success");
+      if (!coachSeen.firstSell) { var avgS = avgCost[sid] || price, plS = (price - avgS) * qty; setCoach({ type: "firstSell", sid: sid, price: price, qty: qty, avg: avgS, pl: plS }); setCoachSeen(function(p) { return { ...p, firstSell: true }; }); }
     }
     setShowTrade(false);
-  }, [prices, cash, portfolio, avgCost, day, notify]);
+  }, [prices, cash, portfolio, avgCost, day, notify, coachSeen]);
 
   var useAb = _c(function(ak, sid) {
     var ab = ABILITIES[ak]; if (abilities[ak].cooldown > 0) { notify("쿨다운 중!", "error"); return; } if (cash < ab.cost) { notify("자금 부족!", "error"); return; }
@@ -143,7 +148,7 @@ export default function App() {
         <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "min(320px,90%)" }}>
           <button style={{ ...BTN("#0ff"), padding: 16, fontSize: 16, letterSpacing: 2 }} onClick={function() { setScreen("modeSelect"); }}>▶ 게임 시작</button>
           <button style={{ ...BTN("#f0f"), padding: 16, fontSize: 16, letterSpacing: 2 }} onClick={function() { if (rankings.length === 0) notify("기록 없음"); else setScreen("result"); }}>◆ 전적 보기</button>
-          <button style={{ ...BTN("#0f6"), padding: 14, fontSize: 14, letterSpacing: 2 }} onClick={function() { setScreen("learn"); setLearnCat("L0"); setLearnQuery(""); setExpandedTerm(null); }}>📚 주식 배우기</button>
+          <button style={{ ...BTN("#0f6"), padding: 14, fontSize: 14, letterSpacing: 2 }} onClick={function() { setLearnFrom("menu"); setScreen("learn"); setLearnCat("L0"); setLearnQuery(""); setExpandedTerm(null); }}>📚 주식 배우기</button>
           <button style={{ ...BTN("#556"), padding: 14, fontSize: 14, letterSpacing: 2 }} onClick={function() { setScreen("help"); }}>❓ 게임 방법</button>
         </div>
       </div>
@@ -157,7 +162,7 @@ export default function App() {
         <div style={{ fontSize: 11, letterSpacing: 4, color: "#556", marginBottom: 30 }}>[ 모드 선택 ]</div>
         <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
           {[{ k: "normal", i: "📈", t: "일반 모드", d: "순수 실력으로 승부. " + SEASON_DAYS + "일 안에 AI를 이겨라.", c: "#0ff", tg: "CLASSIC" }, { k: "force", i: "🐋", t: "세력 모드", d: "특수 능력으로 시장을 지배하라.", c: "#f0f", tg: "WHALE" }].map(function(m) {
-            return <div key={m.k} style={{ ...PNL, width: 280, cursor: "pointer", transition: "all 0.3s" }} onClick={function() { initGame(m.k); }}><div style={GLW(m.c)} /><div style={{ fontSize: 28, marginBottom: 8 }}>{m.i}</div><h3 style={{ margin: "0 0 6px", ...neon(m.c), fontSize: 18 }}>{m.t}</h3><p style={{ fontSize: 12, color: "#667", margin: 0, lineHeight: 1.6 }}>{m.d}</p><div style={{ ...TAG(m.c), marginTop: 12 }}>{m.tg}</div></div>;
+            return <div key={m.k} style={{ ...PNL, width: 280, cursor: "pointer", transition: "all 0.3s" }} onClick={function() { initGame(m.k); if (!coachSeen.intro) { setCoach({ type: "intro" }); setCoachSeen(function(p) { return { ...p, intro: true }; }); } }}><div style={GLW(m.c)} /><div style={{ fontSize: 28, marginBottom: 8 }}>{m.i}</div><h3 style={{ margin: "0 0 6px", ...neon(m.c), fontSize: 18 }}>{m.t}</h3><p style={{ fontSize: 12, color: "#667", margin: 0, lineHeight: 1.6 }}>{m.d}</p><div style={{ ...TAG(m.c), marginTop: 12 }}>{m.tg}</div></div>;
           })}
         </div>
         <button style={{ ...BTN("#556"), marginTop: 30 }} onClick={function() { setScreen("menu"); }}>← 뒤로</button>
@@ -282,7 +287,9 @@ export default function App() {
           })}
 
           <div style={{ textAlign: "center", marginTop: 18 }}>
-            <button style={{ ...BTN("#0ff"), padding: "10px 24px" }} onClick={function() { setScreen("modeSelect"); }}>▶ 게임으로</button>
+            {learnFrom === "game"
+              ? <button style={{ ...BTN("#0ff"), padding: "10px 24px" }} onClick={function() { setScreen("game"); }}>▶ 게임으로 돌아가기</button>
+              : <button style={{ ...BTN("#0ff"), padding: "10px 24px" }} onClick={function() { setScreen("modeSelect"); }}>▶ 게임 시작</button>}
             <button style={{ ...BTN("#556"), padding: "10px 24px", marginLeft: 10 }} onClick={function() { setScreen("menu"); }}>← 메뉴</button>
           </div>
         </div>
@@ -336,6 +343,58 @@ export default function App() {
     <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "'Courier New', monospace", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "fixed", inset: 0, background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,255,0.015) 2px,rgba(0,255,255,0.015) 4px)", pointerEvents: "none", zIndex: 100 }} />
       {notification && <div style={{ position: "fixed", top: 14, left: "50%", transform: "translateX(-50%)", zIndex: 200, padding: "9px 22px", borderRadius: 6, fontSize: 12, fontWeight: 700, letterSpacing: 1, background: nc + "15", border: "1px solid " + nc, color: nc, animation: "fadeIn 0.3s" }}>{notification.msg}</div>}
+
+      {/* ═══════ 코칭 팝업 (L0 인트로 / L1 첫 매수·첫 매도) ═══════ */}
+      {coach && (function() {
+        var C = ({ intro: "#0ff", firstBuy: "#0f6", firstSell: "#ff0" })[coach.type] || "#0ff";
+        var title, lines, goLearn;
+        if (coach.type === "intro") {
+          title = "주식, 딱 30초 설명";
+          lines = [
+            "주식 = 회사를 잘게 쪼갠 '조각'. 사두면 회사가 잘될 때 그 조각의 값이 오릅니다.",
+            "여기선 현금 1천만원으로 실제 기업 10곳(삼성전자·애플 등)을 15일간 사고팝니다.",
+            "싸게 사서 비싸게 파는 게 목표. AI 5명보다 수익률이 높으면 승리합니다.",
+            "모르는 말이 나오면 언제든 메뉴의 '📚 주식 배우기'에서 찾아보세요.",
+          ];
+          goLearn = { cat: "L0", term: "stock", label: "📚 기초부터" };
+        } else if (coach.type === "firstBuy") {
+          title = "첫 매수 완료 — 방금 무슨 일이?";
+          lines = [
+            "현금 " + won(coach.cost) + "이 주식으로 바뀌었어요. 그 돈은 이제 '평가금'(가진 주식의 현재 가치)으로 잡힙니다.",
+            "총자산 = 현금 + 평가금. 매수해도 총자산은 그대로예요 — 돈의 '형태'만 바뀐 겁니다.",
+            "평단가 = 방금 산 평균 가격 " + won(coach.price) + ". 현재가가 이보다 높으면 이익, 낮으면 손실 구간이에요.",
+            "아직 안 팔았으니 손익은 '미확정'. 팔아야 진짜 이익·손실이 됩니다.",
+          ];
+          goLearn = { cat: "L1", term: "equity", label: "📚 평가금·총자산" };
+        } else {
+          title = "첫 매도 완료 — 손익 확정!";
+          lines = [
+            "주식을 다시 현금으로 바꿨어요. 바로 이 순간 이익(또는 손실)이 '확정'됩니다.",
+            "이번 거래 실현손익: " + (coach.pl >= 0 ? "+" : "") + won(coach.pl) + " (평단가 " + won(coach.avg) + " → 매도가 " + won(coach.price) + ").",
+            "오른 상태에서 팔면 익절, 내린 상태에서 팔면 손절이에요.",
+            "팔기 전 숫자는 계속 변하지만, 판 뒤엔 고정됩니다. 그래서 '언제 파느냐'가 중요해요.",
+          ];
+          goLearn = { cat: "L1", term: "profit", label: "📚 실현손익" };
+        }
+        return (
+          <div onClick={function() { setCoach(null); }} style={{ position: "fixed", inset: 0, zIndex: 300, background: "#0a0e17d0", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+            <div onClick={function(e) { e.stopPropagation(); }} style={{ ...PNL, maxWidth: 420, width: "100%", border: "1px solid " + C + "70" }}>
+              <div style={GLW(C)} />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <span style={{ ...TAG(C), fontSize: 9 }}>💡 코칭</span>
+                <span style={{ fontSize: 15, fontWeight: 900, ...neon(C) }}>{title}</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 14 }}>
+                {lines.map(function(t, i) { return <div key={i} style={{ display: "flex", gap: 8, fontSize: 12, color: "#c8d6e5", lineHeight: 1.6 }}><span style={{ color: C, fontWeight: 900 }}>•</span><span>{t}</span></div>; })}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button style={{ ...BTN(C), flex: 1, padding: "9px", fontWeight: 700 }} onClick={function() { setCoach(null); }}>알겠어요</button>
+                <button style={{ ...BTN("#556"), padding: "9px 12px" }} onClick={function() { setCoach(null); setLearnFrom("game"); setScreen("learn"); setLearnCat(goLearn.cat); setLearnQuery(""); setExpandedTerm(goLearn.term); }}>{goLearn.label}</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div style={{ padding: "10px 14px", maxWidth: 900, margin: "0 auto" }}>
         {/* TOP */}
