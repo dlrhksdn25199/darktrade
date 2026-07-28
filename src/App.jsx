@@ -4,6 +4,9 @@ import { ABILITIES } from "./data/abilities";
 import { AI_PLAYERS } from "./data/aiPlayers";
 import { NEWS_POOL } from "./data/news";
 import { TERMS, TERM_CATS } from "./data/terms";
+import { enrichNews, chainSummary } from "./utils/newsImpact";
+import { buildQuiz } from "./utils/quiz";
+import { reviewDay } from "./utils/dayReview";
 import { fmtN, fmtD, fmtF, fmtP, won, wonK } from "./utils/format";
 import { genPrice as genP, uid } from "./utils/helpers";
 import { aiDecide } from "./utils/aiEngine";
@@ -47,12 +50,16 @@ export default function App() {
   var [coach, setCoach] = s(null);       // 현재 코칭 팝업 payload (null=없음)
   var [coachSeen, setCoachSeen] = s({}); // 이미 보여준 코칭 플래그 (세션 단위, intro/firstBuy/firstSell)
   var [learnFrom, setLearnFrom] = s("menu"); // 학습 화면 진입 출처 (menu | game) — 복귀용
+  var [quiz, setQuiz] = s(null);         // L3 뉴스 미니퀴즈 { q, answered }
+  var [quizOff, setQuizOff] = s(false);  // 퀴즈 그만 보기 토글
+  var [dayReviewData, setDayReviewData] = s(null); // L3 하루 마감 리뷰 결과
 
   var notify = _c(function(msg, type) { setNotification({ msg: msg, type: type || "info" }); setTimeout(function() { setNotification(null); }, 2500); }, []);
 
   var initGame = _c(function(m) {
     setMode(m); setDay(1); setCash(INITIAL_CASH); setPortfolio({}); setAvgCost({}); setEventLog([]); setPendingPumps([]);
     setAbilities({ volumeBomb: { cooldown: 0 }, shortAttack: { cooldown: 0 }, pumpScheme: { cooldown: 0 } }); setInfoTab("chart"); setRightTab("detail"); setShowTrade(false); setAbilityMode(null);
+    setDayReviewData(null); setQuiz(null); setQuizOff(false);
     var ip = {}, ih = {}, iv = {}, idh = {}, iw = {};
     STOCKS.forEach(function(st) { ip[st.id] = st.basePrice; ih[st.id] = [st.basePrice]; iv[st.id] = [Math.floor(Math.random() * 50000) + 10000]; idh[st.id] = { high: st.basePrice, low: st.basePrice, open: st.basePrice }; iw[st.id] = { high: st.basePrice, low: st.basePrice }; });
     setPrices(ip); setPriceHistory(ih); setVolumes(iv); setDayHighLow(idh); setWeek52(iw);
@@ -94,7 +101,11 @@ export default function App() {
     var fN = todayN.map(function(n) { return { text: n.text, type: n.impact > 0 ? "good" : "bad", day: day + 1, sector: n.sector }; });
     if (fN.length === 0) fN.push({ text: "특별한 시장 뉴스 없음", type: "neutral", day: day + 1, sector: null });
     setNews(fN); setNewsHistory(function(p) { return fN.concat(p).slice(0, 60); }); setDay(function(d) { return d + 1; });
-  }, [day, prices, priceHistory, volumes, pendingPumps, week52, mode, totalAssets, profitRate, seasonNum, aiPlayers]);
+    // L3 하루 마감 리뷰: 방금 지나간 하루(prices→np)에 대한 판단 피드백
+    setDayReviewData(reviewDay({ prevPrices: prices, newPrices: np, todayNews: fN, portfolio: portfolio, avgCost: avgCost, STOCKS: STOCKS, cash: cash, totalAssets: totalAssets }));
+    // L3 뉴스 미니퀴즈: 오늘 뉴스 중 첫 퀴즈화 가능한 것 1개 (끄지 않았을 때만)
+    if (!quizOff) { for (var qi = 0; qi < fN.length; qi++) { var qz = buildQuiz(fN[qi], STOCKS); if (qz) { setQuiz({ q: qz, answered: null }); break; } } }
+  }, [day, prices, priceHistory, volumes, pendingPumps, week52, mode, totalAssets, profitRate, seasonNum, aiPlayers, portfolio, avgCost, cash, quizOff]);
 
   var executeTrade = _c(function(type, sid, qty) {
     var price = prices[sid];
@@ -427,6 +438,54 @@ export default function App() {
 
         {/* NEWS */}
         {news.length > 0 && <div style={{ marginBottom: 10, padding: "7px 12px", background: "#0d1520", border: "1px solid #1a2a4a", borderRadius: 6, fontSize: 11 }}><span style={{ color: "#ff0", marginRight: 8, fontWeight: 700 }}>⚡ 뉴스</span>{news.map(function(n, i) { return <span key={i} style={{ color: n.type === "good" ? "#0f6" : n.type === "bad" ? "#f33" : "#667" }}>{n.text}{i < news.length - 1 ? " │ " : ""}</span>; })}</div>}
+
+        {/* L3: 뉴스 → 섹터 → 내 보유 연쇄 */}
+        {(function() {
+          var chain = enrichNews(news, portfolio, STOCKS).filter(function(e) { return e.type === "good" || e.type === "bad"; });
+          if (!chain.length) return null;
+          return <div style={{ marginBottom: 10, padding: "7px 12px", background: "#0d1218", border: "1px solid #22303a", borderRadius: 6, fontSize: 10 }}>
+            <span style={{ color: "#0af", fontWeight: 700, cursor: "pointer" }} onClick={function() { openTerm("news"); }}>🔗 뉴스 연쇄 ⓘ</span>
+            <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+              {chain.map(function(e, i) { return <div key={i} style={{ color: e.myHits.length ? (e.type === "good" ? "#0f6" : "#f33") : "#667", lineHeight: 1.5 }}>{chainSummary(e)}{e.myHits.length ? <span style={{ color: "#ff0", fontWeight: 700 }}> ← 내 종목!</span> : null}</div>; })}
+            </div>
+          </div>;
+        })()}
+
+        {/* L3: 하루 마감 리뷰 */}
+        {dayReviewData && <div style={{ marginBottom: 10, padding: "8px 12px", background: "#12100a", border: "1px solid #3a3222", borderRadius: 6, fontSize: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+            <span style={{ color: "#ff0", fontWeight: 700 }}>📋 오늘 리뷰 — {dayReviewData.headline}</span>
+            <button onClick={function() { setDayReviewData(null); }} style={{ background: "none", border: "none", color: "#556", cursor: "pointer", fontSize: 12 }}>✕</button>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {dayReviewData.messages.map(function(m, i) { var c = m.tone === "good" ? "#0f6" : m.tone === "warn" ? "#fa5" : "#8ab"; return <div key={i} style={{ display: "flex", gap: 6, alignItems: "start" }}><span style={{ color: c, fontWeight: 900 }}>{m.tone === "good" ? "✓" : m.tone === "warn" ? "!" : "·"}</span><span style={{ color: "#c8d6e5", lineHeight: 1.5, flex: 1 }}>{m.text}{m.term ? <span onClick={function() { openTerm(m.term); }} style={{ color: "#0af", cursor: "pointer", marginLeft: 4 }}>📚</span> : null}</span></div>; })}
+          </div>
+        </div>}
+
+        {/* L3: 뉴스 미니퀴즈 모달 */}
+        {quiz && (function() {
+          var q = quiz.q, ans = quiz.answered, correct = ans !== null && ans === q.answer;
+          return <div onClick={function() { if (ans !== null) setQuiz(null); }} style={{ position: "fixed", inset: 0, zIndex: 300, background: "#0a0e17d0", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+            <div onClick={function(e) { e.stopPropagation(); }} style={{ ...PNL, maxWidth: 420, width: "100%", border: "1px solid #f5a7" }}>
+              <div style={GLW("#f5a")} />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}><span style={{ ...TAG("#f5a"), fontSize: 9 }}>🎯 미니퀴즈</span><span style={{ fontSize: 13, fontWeight: 900, ...neon("#f5a") }}>뉴스 읽기</span></div>
+              <div style={{ fontSize: 12, color: "#c8d6e5", lineHeight: 1.6, marginBottom: 12 }}>{q.question}</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+                {q.options.map(function(opt) { var picked = ans === opt, isAns = opt === q.answer, col = ans === null ? "#8ab" : (isAns ? "#0f6" : (picked ? "#f33" : "#556")); return <button key={opt} disabled={ans !== null} onClick={function() { setQuiz({ q: q, answered: opt }); }} style={{ ...BTN(col, ans !== null && !isAns && !picked), padding: "9px", textAlign: "left", fontWeight: isAns && ans !== null ? 700 : 400 }}>{ans !== null && isAns ? "✓ " : ""}{opt}</button>; })}
+              </div>
+              {ans !== null && <div style={{ padding: "8px 10px", background: "#0a0e1780", borderRadius: 4, borderLeft: "3px solid " + (correct ? "#0f6" : "#f33"), marginBottom: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: correct ? "#0f6" : "#f33", marginBottom: 3 }}>{correct ? "정답! 🎉" : "아쉬워요"}</div>
+                <div style={{ fontSize: 11, color: "#aab", lineHeight: 1.5 }}>{correct ? q.explainCorrect : q.explainWrong}</div>
+              </div>}
+              <div style={{ display: "flex", gap: 8 }}>
+                {ans !== null
+                  ? <button style={{ ...BTN("#f5a"), flex: 1, padding: "9px", fontWeight: 700 }} onClick={function() { setQuiz(null); }}>계속</button>
+                  : <button style={{ ...BTN("#8ab"), flex: 1, padding: "9px" }} onClick={function() { setQuiz(null); }}>건너뛰기</button>}
+                <button style={{ ...BTN("#556"), padding: "9px 12px" }} onClick={function() { setQuizOff(true); setQuiz(null); }}>그만 볼래요</button>
+              </div>
+            </div>
+          </div>;
+        })()}
 
         {/* AI ACTIVITY */}
         {aiActivity.length > 0 && <div style={{ marginBottom: 10, padding: "6px 12px", background: "#111118", border: "1px solid #1a1a3a", borderRadius: 6, fontSize: 10, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}><span style={{ color: "#a8f", fontWeight: 700 }}>🤖 AI 매매</span>{aiActivity.map(function(a, i) { return <span key={i} style={{ color: a.type === "buy" ? "#0f6" : "#f33" }}><span style={{ color: a.color }}>{a.avatar}{a.name}</span> {a.text}</span>; })}</div>}
