@@ -9,6 +9,7 @@ import { buildQuiz } from "./utils/quiz";
 import { reviewDay } from "./utils/dayReview";
 import { interpretStock } from "./utils/interpret";
 import { analyzeStyle } from "./utils/styleAnalysis";
+import { MANIP_EDU, MANIP_VICTIM } from "./data/manipulation";
 import { fmtN, fmtD, fmtF, fmtP, won, wonK } from "./utils/format";
 import { genPrice as genP, uid } from "./utils/helpers";
 import { aiDecide } from "./utils/aiEngine";
@@ -55,13 +56,14 @@ export default function App() {
   var [quiz, setQuiz] = s(null);         // L3 뉴스 미니퀴즈 { q, answered }
   var [quizOff, setQuizOff] = s(false);  // 퀴즈 그만 보기 토글
   var [dayReviewData, setDayReviewData] = s(null); // L3 하루 마감 리뷰 결과
+  var [manip, setManip] = s(null);       // L5 세력 교육 모달 { kind:'perp'|'victim', key/stock/pct }
 
   var notify = _c(function(msg, type) { setNotification({ msg: msg, type: type || "info" }); setTimeout(function() { setNotification(null); }, 2500); }, []);
 
   var initGame = _c(function(m) {
     setMode(m); setDay(1); setCash(INITIAL_CASH); setPortfolio({}); setAvgCost({}); setEventLog([]); setPendingPumps([]);
     setAbilities({ volumeBomb: { cooldown: 0 }, shortAttack: { cooldown: 0 }, pumpScheme: { cooldown: 0 } }); setInfoTab("chart"); setRightTab("detail"); setShowTrade(false); setAbilityMode(null);
-    setDayReviewData(null); setQuiz(null); setQuizOff(false);
+    setDayReviewData(null); setQuiz(null); setQuizOff(false); setManip(null);
     var ip = {}, ih = {}, iv = {}, idh = {}, iw = {};
     STOCKS.forEach(function(st) { ip[st.id] = st.basePrice; ih[st.id] = [st.basePrice]; iv[st.id] = [Math.floor(Math.random() * 50000) + 10000]; idh[st.id] = { high: st.basePrice, low: st.basePrice, open: st.basePrice }; iw[st.id] = { high: st.basePrice, low: st.basePrice }; });
     setPrices(ip); setPriceHistory(ih); setVolumes(iv); setDayHighLow(idh); setWeek52(iw);
@@ -89,6 +91,19 @@ export default function App() {
       var dH = +(Math.max(op, newP) + Math.random() * spread * 0.5).toFixed(2), dL = +Math.max(0.01, Math.min(op, newP) - Math.random() * spread * 0.5).toFixed(2);
       ndh[st.id] = { high: dH, low: dL, open: op }; var p52 = nw[st.id] || { high: newP, low: newP }; nw[st.id] = { high: Math.max(p52.high, dH), low: Math.min(p52.low, dL) };
     });
+    // L5 피해자 체험 — 세력 모드에서 보유 종목이 정체불명의 세력 공격으로 급락 (시즌 1회)
+    var victim = null;
+    if (mode === "force" && !coachSeen.victim) {
+      var heldIds = Object.keys(portfolio).filter(function(id) { return portfolio[id] > 0; });
+      if (heldIds.length && Math.random() < 0.5) {
+        var vid = heldIds[Math.floor(Math.random() * heldIds.length)], vpct = -(0.08 + Math.random() * 0.07);
+        np[vid] = +Math.max(0.01, np[vid] * (1 + vpct)).toFixed(2);
+        var varr = nh[vid] || []; if (varr.length) varr[varr.length - 1] = np[vid];
+        if (ndh[vid]) ndh[vid].low = Math.min(ndh[vid].low, np[vid]);   // 급락 종가가 당일 저가 밑돌지 않게
+        if (nw[vid]) nw[vid].low = Math.min(nw[vid].low, np[vid]);      // 시즌 저가도 함께 갱신
+        victim = { stock: vid, pct: vpct };
+      }
+    }
     var newAis = aiPlayers.map(function(ai) { return { ...ai, portfolio: { ...ai.portfolio } }; }), acts = [];
     newAis.forEach(function(ai) {
       aiDecide(ai, np, nh, ai.cash, ai.portfolio).forEach(function(d) {
@@ -107,7 +122,9 @@ export default function App() {
     setDayReviewData(reviewDay({ prevPrices: prices, newPrices: np, todayNews: fN, portfolio: portfolio, avgCost: avgCost, STOCKS: STOCKS, cash: cash, totalAssets: totalAssets }));
     // L3 뉴스 미니퀴즈: 오늘 뉴스 중 첫 퀴즈화 가능한 것 1개 (끄지 않았을 때만)
     if (!quizOff) { for (var qi = 0; qi < fN.length; qi++) { var qz = buildQuiz(fN[qi], STOCKS); if (qz) { setQuiz({ q: qz, answered: null }); break; } } }
-  }, [day, prices, priceHistory, volumes, pendingPumps, week52, mode, totalAssets, profitRate, seasonNum, aiPlayers, portfolio, avgCost, cash, quizOff]);
+    // L5 피해자 체험 모달 (퀴즈보다 우선 노출)
+    if (victim) { setManip({ kind: "victim", stock: victim.stock, pct: victim.pct }); setCoachSeen(function(p) { return { ...p, victim: true }; }); }
+  }, [day, prices, priceHistory, volumes, pendingPumps, week52, mode, totalAssets, profitRate, seasonNum, aiPlayers, portfolio, avgCost, cash, quizOff, coachSeen]);
 
   var executeTrade = _c(function(type, sid, qty) {
     var price = prices[sid];
@@ -137,7 +154,9 @@ export default function App() {
     else if (ak === "shortAttack") { var imp = -(0.10 + Math.random() * 0.10); np[sid] = +Math.max(0.01, np[sid] * (1 + imp)).toFixed(2); nh[sid] = (nh[sid] || []).concat([np[sid]]); setPrices(np); setPriceHistory(nh); notify("📉 공매도 어택! " + sid + " 폭락!", "ability"); setEventLog(function(l) { return l.concat([{ day: day, text: "📉 공매도 → " + sid + " (" + fmtP(imp) + ")", type: "ability" }]); }); }
     else if (ak === "pumpScheme") { setPendingPumps(function(p) { return p.concat([{ id: uid(), stockId: sid, turnsLeft: 3 }]); }); notify("🎯 작전 세력 가동! " + sid, "ability"); setEventLog(function(l) { return l.concat([{ day: day, text: "🎯 작전세력 → " + sid + " (3턴)", type: "ability" }]); }); }
     setAbilityMode(null);
-  }, [abilities, cash, prices, priceHistory, day, notify]);
+    // L5 가해자 체험 교육 — 능력 종류별 1회
+    if (!coachSeen["perp_" + ak]) { setManip({ kind: "perp", key: ak }); setCoachSeen(function(p) { var n = { ...p }; n["perp_" + ak] = true; return n; }); }
+  }, [abilities, cash, prices, priceHistory, day, notify, coachSeen]);
 
   var leaderboard = _m(function() {
     return [{ id: "PLAYER", name: "나", avatar: "👤", totalAssets: totalAssets, profitRate: profitRate, color: "#0ff", isPlayer: true }].concat(aiPlayers.map(function(a) { return { ...a, profitRate: (a.totalAssets - INITIAL_CASH) / INITIAL_CASH }; })).sort(function(a, b) { return b.profitRate - a.profitRate; });
@@ -426,6 +445,31 @@ export default function App() {
               <div style={{ display: "flex", gap: 8 }}>
                 <button style={{ ...BTN(C), flex: 1, padding: "9px", fontWeight: 700 }} onClick={function() { setCoach(null); }}>알겠어요</button>
                 <button style={{ ...BTN("#556"), padding: "9px 12px" }} onClick={function() { setCoach(null); setLearnFrom("game"); setScreen("learn"); setLearnCat(goLearn.cat); setLearnQuery(""); setExpandedTerm(goLearn.term); }}>{goLearn.label}</button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ═══════ L5 세력 교육 모달 (가해/피해 체험) ═══════ */}
+      {manip && (function() {
+        var isVictim = manip.kind === "victim";
+        var C = isVictim ? "#f33" : "#f0f";
+        var data = isVictim ? MANIP_VICTIM : (MANIP_EDU[manip.key] || {});
+        var stName = isVictim ? (STOCKS.find(function(x) { return x.id === manip.stock; }) || {}).id || manip.stock : "";
+        var lead = isVictim && data.lead ? data.lead.replace("{stock}", stName).replace("{pct}", fmtP(manip.pct)) : null;
+        return (
+          <div onClick={function() { setManip(null); }} style={{ position: "fixed", inset: 0, zIndex: 300, background: "#0a0e17d0", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+            <div onClick={function(e) { e.stopPropagation(); }} style={{ ...PNL, maxWidth: 430, width: "100%", border: "1px solid " + C + "70" }}>
+              <div style={GLW(C)} />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}><span style={{ ...TAG(C), fontSize: 9 }}>{isVictim ? "🕳️ 피해 체험" : "🐋 세력 교육"}</span><span style={{ fontSize: 14, fontWeight: 900, ...neon(C) }}>{data.icon} {data.title}</span></div>
+              {lead && <div style={{ fontSize: 12, color: C, fontWeight: 700, lineHeight: 1.5, marginBottom: 8 }}>{lead}</div>}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+                {(data.lines || []).map(function(t, i) { return <div key={i} style={{ display: "flex", gap: 8, fontSize: 12, color: "#c8d6e5", lineHeight: 1.6 }}><span style={{ color: C, fontWeight: 900 }}>•</span><span>{t}</span></div>; })}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button style={{ ...BTN(C), flex: 1, padding: "9px", fontWeight: 700 }} onClick={function() { setManip(null); }}>알겠어요</button>
+                <button style={{ ...BTN("#556"), padding: "9px 12px" }} onClick={function() { setManip(null); openTerm(data.term); }}>📚 자세히</button>
               </div>
             </div>
           </div>
