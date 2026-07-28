@@ -170,7 +170,7 @@ export default function App() {
         <div style={{ textAlign: "center", marginBottom: "50px" }}>
           <div style={{ fontSize: 11, letterSpacing: 8, color: "#0ff", marginBottom: 12, opacity: 0.7 }}>[ SIMULATION v3.0 ]</div>
           <h1 style={{ fontSize: "clamp(36px,7vw,56px)", fontWeight: 900, margin: 0, ...neon("#0ff"), letterSpacing: 4 }}>DARK<span style={neon("#f0f")}>TRADE</span></h1>
-          <div style={{ fontSize: 13, color: "#556", marginTop: 8, letterSpacing: 3 }}>주식 시뮬레이터</div>
+          <div style={{ fontSize: 13, color: "#778", marginTop: 8, letterSpacing: 3 }}>주식 시뮬레이터</div>
           <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 16, flexWrap: "wrap" }}>{AI_PLAYERS.map(function(a) { return <span key={a.id} style={TAG(a.color)}>{a.avatar} {a.name}</span>; })}</div>
           <p style={{ fontSize: 12, color: "#667", marginTop: 16, lineHeight: 1.7, maxWidth: 400, marginLeft: "auto", marginRight: "auto" }}>
             현금 {wonK(INITIAL_CASH)}로 시작해 <span style={{ color: "#0ff" }}>{SEASON_DAYS}일</span> 동안 실존 10개 종목(한국·미장)을 매매하는 턴제 시뮬레이터.<br />
@@ -181,7 +181,7 @@ export default function App() {
           <button style={{ ...BTN("#0ff"), padding: 16, fontSize: 16, letterSpacing: 2 }} onClick={function() { setScreen("modeSelect"); }}>▶ 게임 시작</button>
           <button style={{ ...BTN("#f0f"), padding: 16, fontSize: 16, letterSpacing: 2 }} onClick={function() { if (rankings.length === 0) notify("기록 없음"); else setScreen("result"); }}>◆ 전적 보기</button>
           <button style={{ ...BTN("#0f6"), padding: 14, fontSize: 14, letterSpacing: 2 }} onClick={function() { setLearnFrom("menu"); setScreen("learn"); setLearnCat("L0"); setLearnQuery(""); setExpandedTerm(null); }}>📚 주식 배우기</button>
-          <button style={{ ...BTN("#556"), padding: 14, fontSize: 14, letterSpacing: 2 }} onClick={function() { setScreen("help"); }}>❓ 게임 방법</button>
+          <button style={{ ...BTN("#778"), padding: 14, fontSize: 14, letterSpacing: 2 }} onClick={function() { setScreen("help"); }}>❓ 게임 방법</button>
         </div>
       </div>
     </div>
@@ -191,13 +191,13 @@ export default function App() {
   if (screen === "modeSelect") return (
     <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "'Courier New', monospace" }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 20 }}>
-        <div style={{ fontSize: 11, letterSpacing: 4, color: "#556", marginBottom: 30 }}>[ 모드 선택 ]</div>
+        <div style={{ fontSize: 11, letterSpacing: 4, color: "#778", marginBottom: 30 }}>[ 모드 선택 ]</div>
         <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
           {[{ k: "normal", i: "📈", t: "일반 모드", d: "순수 실력으로 승부. " + SEASON_DAYS + "일 안에 AI를 이겨라.", c: "#0ff", tg: "CLASSIC" }, { k: "force", i: "🐋", t: "세력 모드", d: "특수 능력으로 시장을 지배하라.", c: "#f0f", tg: "WHALE" }].map(function(m) {
             return <div key={m.k} style={{ ...PNL, width: 280, cursor: "pointer", transition: "all 0.3s" }} onClick={function() { initGame(m.k); if (!coachSeen.intro) { setCoach({ type: "intro" }); setCoachSeen(function(p) { return { ...p, intro: true }; }); } }}><div style={GLW(m.c)} /><div style={{ fontSize: 28, marginBottom: 8 }}>{m.i}</div><h3 style={{ margin: "0 0 6px", ...neon(m.c), fontSize: 18 }}>{m.t}</h3><p style={{ fontSize: 12, color: "#667", margin: 0, lineHeight: 1.6 }}>{m.d}</p><div style={{ ...TAG(m.c), marginTop: 12 }}>{m.tg}</div></div>;
           })}
         </div>
-        <button style={{ ...BTN("#556"), marginTop: 30 }} onClick={function() { setScreen("menu"); }}>← 뒤로</button>
+        <button style={{ ...BTN("#778"), marginTop: 30 }} onClick={function() { setScreen("menu"); }}>← 뒤로</button>
       </div>
     </div>
   );
@@ -208,7 +208,7 @@ export default function App() {
       <div style={{ position: "fixed", inset: 0, background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,255,0.015) 2px,rgba(0,255,255,0.015) 4px)", pointerEvents: "none", zIndex: 100 }} />
       <div style={{ padding: "30px 20px", maxWidth: 620, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{ fontSize: 10, letterSpacing: 4, color: "#556", marginBottom: 8 }}>[ 게임 방법 ]</div>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: "#778", marginBottom: 8 }}>[ 게임 방법 ]</div>
           <h2 style={{ ...neon("#0ff"), fontSize: 26, margin: 0, letterSpacing: 2 }}>HOW TO PLAY</h2>
         </div>
 
@@ -241,13 +241,13 @@ export default function App() {
         </div>
 
         <div style={{ ...PNL, marginBottom: 16 }}><div style={GLW("#f0f")} />
-          <h3 style={{ margin: "0 0 8px", fontSize: 13, ...neon("#f0f") }}>🐋 세력 능력 <span style={{ fontSize: 10, color: "#556", fontWeight: 400 }}>(세력 모드 전용)</span></h3>
+          <h3 style={{ margin: "0 0 8px", fontSize: 13, ...neon("#f0f") }}>🐋 세력 능력 <span style={{ fontSize: 10, color: "#778", fontWeight: 400 }}>(세력 모드 전용)</span></h3>
           {Object.entries(ABILITIES).map(function(e) { var ab = e[1]; return <div key={e[0]} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: "1px solid #111a2d" }}><span style={{ fontSize: 16 }}>{ab.icon}</span><div style={{ flex: 1 }}><div style={{ fontSize: 12, fontWeight: 700, color: "#f0f" }}>{ab.name}</div><div style={{ fontSize: 10, color: "#667" }}>{ab.desc}</div></div><div style={{ textAlign: "right", fontSize: 10 }}><div style={{ color: "#ff0" }}>{won(ab.cost)}</div><div style={{ color: "#f33" }}>쿨 {ab.cooldown}턴</div></div></div>; })}
         </div>
 
         <div style={{ textAlign: "center" }}>
           <button style={{ ...BTN("#0ff"), padding: "10px 24px" }} onClick={function() { setScreen("modeSelect"); }}>▶ 게임 시작</button>
-          <button style={{ ...BTN("#556"), padding: "10px 24px", marginLeft: 10 }} onClick={function() { setScreen("menu"); }}>← 뒤로</button>
+          <button style={{ ...BTN("#778"), padding: "10px 24px", marginLeft: 10 }} onClick={function() { setScreen("menu"); }}>← 뒤로</button>
         </div>
       </div>
     </div>
@@ -266,7 +266,7 @@ export default function App() {
         <div style={{ position: "fixed", inset: 0, background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,255,0.015) 2px,rgba(0,255,255,0.015) 4px)", pointerEvents: "none", zIndex: 100 }} />
         <div style={{ padding: "30px 20px", maxWidth: 680, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 18 }}>
-            <div style={{ fontSize: 10, letterSpacing: 4, color: "#556", marginBottom: 8 }}>[ 주식 배우기 ]</div>
+            <div style={{ fontSize: 10, letterSpacing: 4, color: "#778", marginBottom: 8 }}>[ 주식 배우기 ]</div>
             <h2 style={{ ...neon("#0f6"), fontSize: 26, margin: 0, letterSpacing: 2 }}>LEARN</h2>
             <p style={{ fontSize: 11, color: "#667", marginTop: 8, lineHeight: 1.6 }}>주식을 하나도 몰라도 괜찮다. 아래 단계대로 하나씩 읽으면 이 게임의 모든 화면이 이해된다.<br />(예시 수치는 게임 종목 근사치 · 실제 투자 조언 아님)</p>
           </div>
@@ -280,7 +280,7 @@ export default function App() {
             {TERM_CATS.map(function(c) {
               var on = learnCat === c.key;
               return <button key={c.key} onClick={function() { setLearnCat(c.key); setExpandedTerm(null); }} title={c.desc}
-                style={{ background: on ? c.color + "18" : "transparent", border: "1px solid " + (on ? c.color : "#222"), color: on ? c.color : "#556", padding: "6px 12px", borderRadius: 4, cursor: "pointer", fontFamily: "inherit", fontSize: 11, fontWeight: on ? 700 : 400 }}>{c.label}</button>;
+                style={{ background: on ? c.color + "18" : "transparent", border: "1px solid " + (on ? c.color : "#222"), color: on ? c.color : "#778", padding: "6px 12px", borderRadius: 4, cursor: "pointer", fontFamily: "inherit", fontSize: 11, fontWeight: on ? 700 : 400 }}>{c.label}</button>;
             })}
           </div>}
 
@@ -288,7 +288,7 @@ export default function App() {
           {q && <div style={{ fontSize: 11, color: "#667", marginBottom: 10 }}>"{q}" 검색 결과 {visible.length}개</div>}
 
           {/* 용어 카드 목록 */}
-          {visible.length === 0 ? <div style={{ color: "#445", fontSize: 12, padding: "20px 0", textAlign: "center" }}>일치하는 용어가 없다.</div> : visible.map(function(t) {
+          {visible.length === 0 ? <div style={{ color: "#667", fontSize: 12, padding: "20px 0", textAlign: "center" }}>일치하는 용어가 없다.</div> : visible.map(function(t) {
             var open = expandedTerm === t.id, cc = catColor(t.cat);
             return <div key={t.id} style={{ ...PNL, marginBottom: 8, padding: 0, cursor: "pointer" }}>
               <div style={GLW(cc)} />
@@ -298,7 +298,7 @@ export default function App() {
                     <span style={{ ...TAG(cc), fontSize: 8 }}>{t.cat}</span>
                     <span style={{ fontSize: 14, fontWeight: 700, color: cc }}>{t.term}</span>
                   </div>
-                  <span style={{ fontSize: 12, color: "#556" }}>{open ? "▲" : "▼"}</span>
+                  <span style={{ fontSize: 12, color: "#778" }}>{open ? "▲" : "▼"}</span>
                 </div>
                 <div style={{ fontSize: 12, color: "#aab", marginTop: 4, lineHeight: 1.5 }}>{t.short}</div>
                 {open && <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #1a2a4a" }}>
@@ -308,9 +308,9 @@ export default function App() {
                     <div style={{ fontSize: 11, color: "#99a", marginTop: 3, lineHeight: 1.6 }}>{t.example}</div>
                   </div>
                   {t.related && t.related.length > 0 && <div style={{ marginTop: 10 }}>
-                    <span style={{ fontSize: 9, color: "#556", letterSpacing: 1 }}>관련 용어 </span>
+                    <span style={{ fontSize: 9, color: "#778", letterSpacing: 1 }}>관련 용어 </span>
                     <div style={{ display: "inline-flex", gap: 5, flexWrap: "wrap", marginTop: 4 }}>
-                      {t.related.map(function(rid) { var rt = TERMS.find(function(x) { return x.id === rid; }); if (!rt) return null; return <button key={rid} onClick={function(e) { e.stopPropagation(); jumpTo(rid); }} style={{ ...BTN("#556"), padding: "3px 9px", fontSize: 10 }}>{rt.term}</button>; })}
+                      {t.related.map(function(rid) { var rt = TERMS.find(function(x) { return x.id === rid; }); if (!rt) return null; return <button key={rid} onClick={function(e) { e.stopPropagation(); jumpTo(rid); }} style={{ ...BTN("#778"), padding: "3px 9px", fontSize: 10 }}>{rt.term}</button>; })}
                     </div>
                   </div>}
                 </div>}
@@ -324,7 +324,7 @@ export default function App() {
               : learnFrom === "result"
               ? <button style={{ ...BTN("#0ff"), padding: "10px 24px" }} onClick={function() { setScreen("result"); }}>◆ 결과로 돌아가기</button>
               : <button style={{ ...BTN("#0ff"), padding: "10px 24px" }} onClick={function() { setScreen("modeSelect"); }}>▶ 게임 시작</button>}
-            <button style={{ ...BTN("#556"), padding: "10px 24px", marginLeft: 10 }} onClick={function() { setScreen("menu"); }}>← 메뉴</button>
+            <button style={{ ...BTN("#778"), padding: "10px 24px", marginLeft: 10 }} onClick={function() { setScreen("menu"); }}>← 메뉴</button>
           </div>
         </div>
       </div>
@@ -339,12 +339,12 @@ export default function App() {
       <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "'Courier New', monospace" }}>
         <div style={{ padding: "30px 20px", maxWidth: 600, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <div style={{ fontSize: 10, letterSpacing: 4, color: "#556", marginBottom: 10 }}>[ 시즌 {seasonNum} 종료 ]</div>
+            <div style={{ fontSize: 10, letterSpacing: 4, color: "#778", marginBottom: 10 }}>[ 시즌 {seasonNum} 종료 ]</div>
             <h2 style={{ ...neon(profitRate >= 0 ? "#0f6" : "#f33"), fontSize: 32, margin: 0 }}>{profitRate >= 0 ? "수익 달성!" : "손실 발생"}</h2>
           </div>
-          <div style={{ ...PNL, marginBottom: 16, textAlign: "center" }}><div style={GLW(profitRate >= 0 ? "#0f6" : "#f33")} /><div style={{ fontSize: 13, color: "#556", marginBottom: 4 }}>최종 수익률</div><div style={{ fontSize: 34, fontWeight: 900, ...neon(profitRate >= 0 ? "#0f6" : "#f33") }}>{fmtP(profitRate)}</div><div style={{ fontSize: 12, color: "#778", marginTop: 6 }}>총 자산: {won(totalAssets)} / {mode === "force" ? "세력" : "일반"} 모드</div></div>
+          <div style={{ ...PNL, marginBottom: 16, textAlign: "center" }}><div style={GLW(profitRate >= 0 ? "#0f6" : "#f33")} /><div style={{ fontSize: 13, color: "#778", marginBottom: 4 }}>최종 수익률</div><div style={{ fontSize: 34, fontWeight: 900, ...neon(profitRate >= 0 ? "#0f6" : "#f33") }}>{fmtP(profitRate)}</div><div style={{ fontSize: 12, color: "#778", marginTop: 6 }}>총 자산: {won(totalAssets)} / {mode === "force" ? "세력" : "일반"} 모드</div></div>
           <div style={{ ...PNL, marginBottom: 16 }}><div style={GLW("#ff0")} /><h3 style={{ margin: "0 0 12px", fontSize: 13, ...neon("#ff0") }}>◆ 최종 순위</h3>
-            {board.map(function(r, i) { return <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", background: r.isPlayer ? "#0ff08" : "transparent", borderRadius: 4, borderLeft: "3px solid " + (i === 0 ? "#ff0" : i === 1 ? "#aaa" : i === 2 ? "#a65" : "#333"), marginBottom: 4 }}><span style={{ fontSize: 14, fontWeight: 900, color: i === 0 ? "#ff0" : "#556", width: 24 }}>#{i + 1}</span><span style={{ fontSize: 16 }}>{r.avatar}</span><span style={{ flex: 1, fontSize: 12, color: r.isPlayer ? "#0ff" : "#aab", fontWeight: r.isPlayer ? 700 : 400 }}>{r.name}</span><span style={{ fontSize: 13, fontWeight: 700, color: r.profitRate >= 0 ? "#0f6" : "#f33" }}>{fmtP(r.profitRate)}</span><span style={{ fontSize: 10, color: "#556" }}>{wonK(r.totalAssets)}</span></div>; })}
+            {board.map(function(r, i) { return <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", background: r.isPlayer ? "#0ff08" : "transparent", borderRadius: 4, borderLeft: "3px solid " + (i === 0 ? "#ff0" : i === 1 ? "#aaa" : i === 2 ? "#a65" : "#333"), marginBottom: 4 }}><span style={{ fontSize: 14, fontWeight: 900, color: i === 0 ? "#ff0" : "#778", width: 24 }}>#{i + 1}</span><span style={{ fontSize: 16 }}>{r.avatar}</span><span style={{ flex: 1, fontSize: 12, color: r.isPlayer ? "#0ff" : "#aab", fontWeight: r.isPlayer ? 700 : 400 }}>{r.name}</span><span style={{ fontSize: 13, fontWeight: 700, color: r.profitRate >= 0 ? "#0f6" : "#f33" }}>{fmtP(r.profitRate)}</span><span style={{ fontSize: 10, color: "#778" }}>{wonK(r.totalAssets)}</span></div>; })}
           </div>
           {eventLog && eventLog.length > 0 && (function() {
             var stl = analyzeStyle(eventLog, priceHistory, STOCKS, AI_PLAYERS), ai = stl.matchedAi || {};
@@ -444,7 +444,7 @@ export default function App() {
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button style={{ ...BTN(C), flex: 1, padding: "9px", fontWeight: 700 }} onClick={function() { setCoach(null); }}>알겠어요</button>
-                <button style={{ ...BTN("#556"), padding: "9px 12px" }} onClick={function() { setCoach(null); setLearnFrom("game"); setScreen("learn"); setLearnCat(goLearn.cat); setLearnQuery(""); setExpandedTerm(goLearn.term); }}>{goLearn.label}</button>
+                <button style={{ ...BTN("#778"), padding: "9px 12px" }} onClick={function() { setCoach(null); setLearnFrom("game"); setScreen("learn"); setLearnCat(goLearn.cat); setLearnQuery(""); setExpandedTerm(goLearn.term); }}>{goLearn.label}</button>
               </div>
             </div>
           </div>
@@ -469,7 +469,7 @@ export default function App() {
               </div>
               <div style={{ display: "flex", gap: 8 }}>
                 <button style={{ ...BTN(C), flex: 1, padding: "9px", fontWeight: 700 }} onClick={function() { setManip(null); }}>알겠어요</button>
-                <button style={{ ...BTN("#556"), padding: "9px 12px" }} onClick={function() { setManip(null); openTerm(data.term); }}>📚 자세히</button>
+                <button style={{ ...BTN("#778"), padding: "9px 12px" }} onClick={function() { setManip(null); openTerm(data.term); }}>📚 자세히</button>
               </div>
             </div>
           </div>
@@ -482,11 +482,11 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 15, fontWeight: 900, ...neon("#0ff"), letterSpacing: 2 }}>DARK<span style={neon("#f0f")}>TRADE</span></span>
             {mode === "force" && <span style={TAG("#f0f")}>세력</span>}
-            <span style={TAG(myRank === 1 ? "#ff0" : myRank <= 3 ? "#0f6" : "#556")}>#{myRank}위</span>
+            <span style={TAG(myRank === 1 ? "#ff0" : myRank <= 3 ? "#0f6" : "#778")}>#{myRank}위</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 11 }}>
-            <span style={{ color: "#556" }}>DAY <span style={{ color: "#0ff", fontWeight: 700 }}>{day}</span>/{SEASON_DAYS}</span>
-            <button style={{ ...BTN("#556"), padding: "3px 10px", fontSize: 10 }} onClick={function() { setScreen("menu"); }}>나가기</button>
+            <span style={{ color: "#778" }}>DAY <span style={{ color: "#0ff", fontWeight: 700 }}>{day}</span>/{SEASON_DAYS}</span>
+            <button style={{ ...BTN("#778"), padding: "3px 10px", fontSize: 10 }} onClick={function() { setScreen("menu"); }}>나가기</button>
           </div>
         </div>
 
@@ -494,12 +494,12 @@ export default function App() {
         <div style={{ display: "flex", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
           <div style={{ ...PNL, flex: "1 1 300px", display: "flex", flexWrap: "wrap", gap: 16, padding: "10px 14px" }}>
             <div style={GLW(profitRate >= 0 ? "#0f6" : "#f33")} />
-            <div><div style={{ fontSize: 9, color: "#556", letterSpacing: 2 }}>총 자산</div><div style={{ fontSize: 18, fontWeight: 900, ...neon(profitRate >= 0 ? "#0f6" : "#f33") }}>{won(totalAssets)}</div></div>
-            <div><div style={{ fontSize: 9, color: "#556", letterSpacing: 2 }}>수익률</div><div style={{ fontSize: 14, fontWeight: 700, color: profitRate >= 0 ? "#0f6" : "#f33" }}>{fmtP(profitRate)}</div></div>
-            <div><div style={{ fontSize: 9, color: "#556", letterSpacing: 2 }}>현금</div><div style={{ fontSize: 14, fontWeight: 700, color: "#0ff" }}>{won(cash)}</div></div>
+            <div><div style={{ fontSize: 9, color: "#778", letterSpacing: 2 }}>총 자산</div><div style={{ fontSize: 18, fontWeight: 900, ...neon(profitRate >= 0 ? "#0f6" : "#f33") }}>{won(totalAssets)}</div></div>
+            <div><div style={{ fontSize: 9, color: "#778", letterSpacing: 2 }}>수익률</div><div style={{ fontSize: 14, fontWeight: 700, color: profitRate >= 0 ? "#0f6" : "#f33" }}>{fmtP(profitRate)}</div></div>
+            <div><div style={{ fontSize: 9, color: "#778", letterSpacing: 2 }}>현금</div><div style={{ fontSize: 14, fontWeight: 700, color: "#0ff" }}>{won(cash)}</div></div>
           </div>
-          <div style={{ ...PNL, flex: "1 1 240px", padding: "8px 12px" }}><div style={GLW("#ff0")} /><div style={{ fontSize: 9, color: "#556", letterSpacing: 2, marginBottom: 4 }}>실시간 순위</div>
-            {leaderboard.map(function(l, i) { return <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, padding: "2px 4px", borderRadius: 3, background: l.isPlayer ? "#0ff08" : "transparent" }}><span style={{ color: i === 0 ? "#ff0" : "#556", fontWeight: 700, width: 18 }}>#{i + 1}</span><span>{l.avatar}</span><span style={{ flex: 1, color: l.isPlayer ? "#0ff" : l.color, fontWeight: l.isPlayer ? 700 : 400 }}>{l.name}</span><span style={{ color: l.profitRate >= 0 ? "#0f6" : "#f33", fontWeight: 700 }}>{fmtP(l.profitRate)}</span></div>; })}
+          <div style={{ ...PNL, flex: "1 1 240px", padding: "8px 12px" }}><div style={GLW("#ff0")} /><div style={{ fontSize: 9, color: "#778", letterSpacing: 2, marginBottom: 4 }}>실시간 순위</div>
+            {leaderboard.map(function(l, i) { return <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, padding: "2px 4px", borderRadius: 3, background: l.isPlayer ? "#0ff08" : "transparent" }}><span style={{ color: i === 0 ? "#ff0" : "#778", fontWeight: 700, width: 18 }}>#{i + 1}</span><span>{l.avatar}</span><span style={{ flex: 1, color: l.isPlayer ? "#0ff" : l.color, fontWeight: l.isPlayer ? 700 : 400 }}>{l.name}</span><span style={{ color: l.profitRate >= 0 ? "#0f6" : "#f33", fontWeight: 700 }}>{fmtP(l.profitRate)}</span></div>; })}
           </div>
         </div>
 
@@ -522,7 +522,7 @@ export default function App() {
         {dayReviewData && <div style={{ marginBottom: 10, padding: "8px 12px", background: "#12100a", border: "1px solid #3a3222", borderRadius: 6, fontSize: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
             <span style={{ color: "#ff0", fontWeight: 700 }}>📋 오늘 리뷰 — {dayReviewData.headline}</span>
-            <button onClick={function() { setDayReviewData(null); }} style={{ background: "none", border: "none", color: "#556", cursor: "pointer", fontSize: 12 }}>✕</button>
+            <button onClick={function() { setDayReviewData(null); }} style={{ background: "none", border: "none", color: "#778", cursor: "pointer", fontSize: 12 }}>✕</button>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             {dayReviewData.messages.map(function(m, i) { var c = m.tone === "good" ? "#0f6" : m.tone === "warn" ? "#fa5" : "#8ab"; return <div key={i} style={{ display: "flex", gap: 6, alignItems: "start" }}><span style={{ color: c, fontWeight: 900 }}>{m.tone === "good" ? "✓" : m.tone === "warn" ? "!" : "·"}</span><span style={{ color: "#c8d6e5", lineHeight: 1.5, flex: 1 }}>{m.text}{m.term ? <span onClick={function() { openTerm(m.term); }} style={{ color: "#0af", cursor: "pointer", marginLeft: 4 }}>📚</span> : null}</span></div>; })}
@@ -538,7 +538,7 @@ export default function App() {
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}><span style={{ ...TAG("#f5a"), fontSize: 9 }}>🎯 미니퀴즈</span><span style={{ fontSize: 13, fontWeight: 900, ...neon("#f5a") }}>뉴스 읽기</span></div>
               <div style={{ fontSize: 12, color: "#c8d6e5", lineHeight: 1.6, marginBottom: 12 }}>{q.question}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
-                {q.options.map(function(opt) { var picked = ans === opt, isAns = opt === q.answer, col = ans === null ? "#8ab" : (isAns ? "#0f6" : (picked ? "#f33" : "#556")); return <button key={opt} disabled={ans !== null} onClick={function() { setQuiz({ q: q, answered: opt }); }} style={{ ...BTN(col, ans !== null && !isAns && !picked), padding: "9px", textAlign: "left", fontWeight: isAns && ans !== null ? 700 : 400 }}>{ans !== null && isAns ? "✓ " : ""}{opt}</button>; })}
+                {q.options.map(function(opt) { var picked = ans === opt, isAns = opt === q.answer, col = ans === null ? "#8ab" : (isAns ? "#0f6" : (picked ? "#f33" : "#778")); return <button key={opt} disabled={ans !== null} onClick={function() { setQuiz({ q: q, answered: opt }); }} style={{ ...BTN(col, ans !== null && !isAns && !picked), padding: "9px", textAlign: "left", fontWeight: isAns && ans !== null ? 700 : 400 }}>{ans !== null && isAns ? "✓ " : ""}{opt}</button>; })}
               </div>
               {ans !== null && <div style={{ padding: "8px 10px", background: "#0a0e1780", borderRadius: 4, borderLeft: "3px solid " + (correct ? "#0f6" : "#f33"), marginBottom: 12 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: correct ? "#0f6" : "#f33", marginBottom: 3 }}>{correct ? "정답! 🎉" : "아쉬워요"}</div>
@@ -548,7 +548,7 @@ export default function App() {
                 {ans !== null
                   ? <button style={{ ...BTN("#f5a"), flex: 1, padding: "9px", fontWeight: 700 }} onClick={function() { setQuiz(null); }}>계속</button>
                   : <button style={{ ...BTN("#8ab"), flex: 1, padding: "9px" }} onClick={function() { setQuiz(null); }}>건너뛰기</button>}
-                <button style={{ ...BTN("#556"), padding: "9px 12px" }} onClick={function() { setQuizOff(true); setQuiz(null); }}>그만 볼래요</button>
+                <button style={{ ...BTN("#778"), padding: "9px 12px" }} onClick={function() { setQuizOff(true); setQuiz(null); }}>그만 볼래요</button>
               </div>
             </div>
           </div>;
@@ -560,12 +560,12 @@ export default function App() {
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {/* LEFT: MARKET */}
           <div style={{ flex: "1 1 260px", minWidth: 260 }}>
-            <div style={{ ...PNL, marginBottom: 10 }}><div style={GLW("#0ff")} /><div style={{ fontSize: 9, color: "#556", letterSpacing: 2, marginBottom: 8 }}>종목 목록</div>
+            <div style={{ ...PNL, marginBottom: 10 }}><div style={GLW("#0ff")} /><div style={{ fontSize: 9, color: "#778", letterSpacing: 2, marginBottom: 8 }}>종목 목록</div>
               {STOCKS.map(function(st) {
                 var p = prices[st.id] || st.basePrice, h = priceHistory[st.id] || [st.basePrice];
                 var ch = h.length >= 2 ? (h[h.length - 1] - h[h.length - 2]) / h[h.length - 2] : 0, isUp = ch >= 0, isSel = selectedStock === st.id, pump = pendingPumps.some(function(pp) { return pp.stockId === st.id; });
                 return <div key={st.id} onClick={function() { setSelectedStock(st.id); setInfoTab("chart"); setRightTab("detail"); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 8px", borderRadius: 6, cursor: "pointer", background: isSel ? "#0ff08" : "transparent", border: "1px solid " + (isSel ? "#0ff40" : "transparent"), marginBottom: 2, transition: "all 0.15s" }}>
-                  <div style={{ flex: 1 }}><div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ fontSize: 12, fontWeight: 700, color: isSel ? "#0ff" : "#aab" }}>{st.id}</span><span style={{ ...TAG(secC(st.sector)), fontSize: 8, padding: "1px 4px" }}>{st.sector}</span>{pump && <span style={{ fontSize: 8, color: "#f0f" }}>🎯</span>}{portfolio[st.id] > 0 && <span style={{ ...TAG("#ff0"), fontSize: 8, padding: "1px 3px" }}>{portfolio[st.id]}주</span>}</div><div style={{ fontSize: 9, color: "#445" }}>{st.name}</div></div>
+                  <div style={{ flex: 1 }}><div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ fontSize: 12, fontWeight: 700, color: isSel ? "#0ff" : "#aab" }}>{st.id}</span><span style={{ ...TAG(secC(st.sector)), fontSize: 8, padding: "1px 4px" }}>{st.sector}</span>{pump && <span style={{ fontSize: 8, color: "#f0f" }}>🎯</span>}{portfolio[st.id] > 0 && <span style={{ ...TAG("#ff0"), fontSize: 8, padding: "1px 3px" }}>{portfolio[st.id]}주</span>}</div><div style={{ fontSize: 9, color: "#667" }}>{st.name}</div></div>
                   <div style={{ textAlign: "right" }}><div style={{ fontSize: 12, fontWeight: 700, color: isUp ? "#0f6" : "#f33" }}>{won(p)}</div><div style={{ fontSize: 9, color: isUp ? "#0f6" : "#f33" }}>{fmtP(ch)}</div></div>
                   <MiniChart data={h.slice(-15)} color={isUp ? "#0f6" : "#f33"} />
                 </div>;
@@ -573,39 +573,39 @@ export default function App() {
             </div>
 
             {/* PORTFOLIO */}
-            {Object.keys(portfolio).length > 0 && <div style={{ ...PNL, marginBottom: 10 }}><div style={GLW("#ff0")} /><div style={{ fontSize: 9, color: "#556", letterSpacing: 2, marginBottom: 6 }}>보유 종목</div>
-              {Object.entries(portfolio).map(function(e) { var id = e[0], qty = e[1], cp = prices[id] || 0, avg = avgCost[id] || cp, pl = (cp - avg) / avg; return <div key={id} style={{ padding: "4px 0", borderBottom: "1px solid #1a2a3a" }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}><span style={{ color: "#aab", fontWeight: 700 }}>{id} x{qty}</span><span style={{ color: "#ff0" }}>{won(cp * qty)}</span></div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, marginTop: 1 }}><span style={{ color: "#445" }}>평단 {won(avg)}</span><span style={{ color: pl >= 0 ? "#0f6" : "#f33" }}>{fmtP(pl)}</span></div></div>; })}
+            {Object.keys(portfolio).length > 0 && <div style={{ ...PNL, marginBottom: 10 }}><div style={GLW("#ff0")} /><div style={{ fontSize: 9, color: "#778", letterSpacing: 2, marginBottom: 6 }}>보유 종목</div>
+              {Object.entries(portfolio).map(function(e) { var id = e[0], qty = e[1], cp = prices[id] || 0, avg = avgCost[id] || cp, pl = (cp - avg) / avg; return <div key={id} style={{ padding: "4px 0", borderBottom: "1px solid #1a2a3a" }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}><span style={{ color: "#aab", fontWeight: 700 }}>{id} x{qty}</span><span style={{ color: "#ff0" }}>{won(cp * qty)}</span></div><div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, marginTop: 1 }}><span style={{ color: "#667" }}>평단 {won(avg)}</span><span style={{ color: pl >= 0 ? "#0f6" : "#f33" }}>{fmtP(pl)}</span></div></div>; })}
             </div>}
 
             {/* LOG */}
-            <div style={PNL}><div style={GLW("#556")} /><div style={{ fontSize: 9, color: "#556", letterSpacing: 2, marginBottom: 6 }}>거래 기록</div><div style={{ maxHeight: 80, overflow: "auto", fontSize: 10 }}>
-              {eventLog.length === 0 ? <div style={{ color: "#334" }}>아직 거래 없음</div> : eventLog.slice().reverse().slice(0, 15).map(function(e, i) { var lc = e.type === "buy" ? "#0f6" : e.type === "sell" ? "#f33" : e.type === "ability" ? "#f0f" : "#667"; return <div key={i} style={{ padding: "2px 0", borderBottom: "1px solid #111a2d", color: lc }}><span style={{ color: "#334", marginRight: 4 }}>D{e.day}</span>{e.text}</div>; })}
+            <div style={PNL}><div style={GLW("#778")} /><div style={{ fontSize: 9, color: "#778", letterSpacing: 2, marginBottom: 6 }}>거래 기록</div><div style={{ maxHeight: 80, overflow: "auto", fontSize: 10 }}>
+              {eventLog.length === 0 ? <div style={{ color: "#556" }}>아직 거래 없음</div> : eventLog.slice().reverse().slice(0, 15).map(function(e, i) { var lc = e.type === "buy" ? "#0f6" : e.type === "sell" ? "#f33" : e.type === "ability" ? "#f0f" : "#667"; return <div key={i} style={{ padding: "2px 0", borderBottom: "1px solid #111a2d", color: lc }}><span style={{ color: "#556", marginRight: 4 }}>D{e.day}</span>{e.text}</div>; })}
             </div></div>
           </div>
 
           {/* RIGHT */}
           <div style={{ flex: "1 1 400px", minWidth: 320 }}>
             <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
-              {[{ k: "detail", l: "📊 종목 상세" }, { k: "players", l: "🤖 AI 트레이더" }].map(function(t) { return <button key={t.k} onClick={function() { setRightTab(t.k); }} style={{ background: rightTab === t.k ? "#0ff10" : "transparent", border: "1px solid " + (rightTab === t.k ? "#0ff" : "#222"), color: rightTab === t.k ? "#0ff" : "#556", padding: "5px 14px", borderRadius: 4, cursor: "pointer", fontFamily: "inherit", fontSize: 11, fontWeight: rightTab === t.k ? 700 : 400 }}>{t.l}</button>; })}
+              {[{ k: "detail", l: "📊 종목 상세" }, { k: "players", l: "🤖 AI 트레이더" }].map(function(t) { return <button key={t.k} onClick={function() { setRightTab(t.k); }} style={{ background: rightTab === t.k ? "#0ff10" : "transparent", border: "1px solid " + (rightTab === t.k ? "#0ff" : "#222"), color: rightTab === t.k ? "#0ff" : "#778", padding: "5px 14px", borderRadius: 4, cursor: "pointer", fontFamily: "inherit", fontSize: 11, fontWeight: rightTab === t.k ? 700 : 400 }}>{t.l}</button>; })}
             </div>
 
             {/* STOCK DETAIL */}
             {rightTab === "detail" && <div style={{ ...PNL, marginBottom: 10 }}><div style={GLW(sc >= 0 ? "#0f6" : "#f33")} />
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 4 }}>
-                <div><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 16, fontWeight: 900, ...neon(sc >= 0 ? "#0f6" : "#f33") }}>{sel ? sel.id : ""}</span><span style={TAG(secC(sel ? sel.sector : ""))}>{sel ? sel.sector : ""}</span>{hasPump && <span style={TAG("#f0f")}>🎯 작전중</span>}</div><div style={{ fontSize: 10, color: "#556", marginTop: 1 }}>{sel ? sel.name : ""}</div></div>
+                <div><div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 16, fontWeight: 900, ...neon(sc >= 0 ? "#0f6" : "#f33") }}>{sel ? sel.id : ""}</span><span style={TAG(secC(sel ? sel.sector : ""))}>{sel ? sel.sector : ""}</span>{hasPump && <span style={TAG("#f0f")}>🎯 작전중</span>}</div><div style={{ fontSize: 10, color: "#778", marginTop: 1 }}>{sel ? sel.name : ""}</div></div>
                 <div style={{ textAlign: "right" }}><div style={{ fontSize: 22, fontWeight: 900, color: sc >= 0 ? "#0f6" : "#f33" }}>{won(sp)}</div><div style={{ fontSize: 11, color: sc >= 0 ? "#0f6" : "#f33" }}>{fmtP(sc)}</div></div>
               </div>
               <div style={{ display: "flex", gap: 4, marginBottom: 8, borderBottom: "1px solid #1a2a4a", paddingBottom: 6 }}>
-                {[{ k: "chart", l: "📊 차트" }, { k: "info", l: "📋 정보" }, { k: "news", l: "📰 뉴스" }].map(function(t) { return <button key={t.k} onClick={function() { setInfoTab(t.k); }} style={{ background: infoTab === t.k ? "#0ff15" : "transparent", border: "1px solid " + (infoTab === t.k ? "#0ff" : "#222"), color: infoTab === t.k ? "#0ff" : "#556", padding: "3px 12px", borderRadius: 4, cursor: "pointer", fontFamily: "inherit", fontSize: 10, fontWeight: infoTab === t.k ? 700 : 400 }}>{t.l}</button>; })}
+                {[{ k: "chart", l: "📊 차트" }, { k: "info", l: "📋 정보" }, { k: "news", l: "📰 뉴스" }].map(function(t) { return <button key={t.k} onClick={function() { setInfoTab(t.k); }} style={{ background: infoTab === t.k ? "#0ff15" : "transparent", border: "1px solid " + (infoTab === t.k ? "#0ff" : "#222"), color: infoTab === t.k ? "#0ff" : "#778", padding: "3px 12px", borderRadius: 4, cursor: "pointer", fontFamily: "inherit", fontSize: 10, fontWeight: infoTab === t.k ? 700 : 400 }}>{t.l}</button>; })}
               </div>
-              {infoTab === "chart" && <div><StockChart data={sh} /><VolumeChart volumes={svol} /><div style={{ display: "flex", gap: 10, marginTop: 6, fontSize: 9, color: "#556", flexWrap: "wrap" }}><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>시가 <span style={{ color: "#aab" }}>{won(sdh.open)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>고가 <span style={{ color: "#f33" }}>{won(sdh.high)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>저가 <span style={{ color: "#38f" }}>{won(sdh.low)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("volume"); }}>거래량 <span style={{ color: "#aab" }}>{fmtF(sVolLast)}</span></span><span style={{ cursor: "pointer", color: "#0af" }} onClick={function() { openTerm("candle"); }}>📚 캔들이란?</span></div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginTop: 8 }}>{[["시총", wonK(sMcap), "#ff0", "marketcap"], ["PER", (sel ? sel.per : 0) + "x", "#aab", "per"], ["변동성", (sel ? (sel.volatility * 100).toFixed(1) : 0) + "%", "#f5a", "volatility"]].map(function(t, i) { return <div key={i} onClick={function() { openTerm(t[3]); }} title="탭하면 설명" style={{ background: "#0a0e1780", padding: "5px 6px", borderRadius: 4, textAlign: "center", cursor: "pointer" }}><div style={{ fontSize: 8, color: "#445" }}>{t[0]} <span style={{ color: "#0af" }}>ⓘ</span></div><div style={{ fontSize: 12, fontWeight: 700, color: t[2] }}>{t[1]}</div></div>; })}</div></div>}
-              {infoTab === "info" && <div><div style={{ fontSize: 10, color: "#667", lineHeight: 1.6, marginBottom: 10, padding: "6px 8px", background: "#0a0e1780", borderRadius: 4, borderLeft: "3px solid " + secC(sel ? sel.sector : "") }}>{sel ? sel.desc : ""}</div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 14px" }}>{[["시가총액", wonK(sMcap), "#ff0", "marketcap"], ["PER", (sel ? sel.per : 0) + "x", "#aab", "per"], ["발행주식", fmtN(sel ? sel.shares : 0), "#aab", "shares"], ["변동성", (sel ? (sel.volatility * 100).toFixed(1) : 0) + "%", "#f5a", "volatility"], ["시즌 고가", won(s52.high), "#f33"], ["시즌 저가", won(s52.low), "#38f"], ["시즌 수익률", fmtP(sTotRet), sTotRet >= 0 ? "#0f6" : "#f33", "returnrate"], ["CEO", sel ? sel.ceo : "", "#aab"], ["설립", sel ? sel.founded + "년" : "", "#aab"], ["직원수", sel ? sel.employees + "명" : "", "#aab"]].map(function(t, i) { var tid = t[3]; return <div key={i} onClick={tid ? function() { openTerm(tid); } : undefined} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #111a2d", fontSize: 11, cursor: tid ? "pointer" : "default" }}><span style={{ color: "#556" }}>{t[0]}{tid ? <span style={{ color: "#0af" }}> ⓘ</span> : null}</span><span style={{ color: t[2], fontWeight: 700 }}>{t[1]}</span></div>; })}</div><div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid #1a2a4a" }}>{sel && sel.market === "US" && <div style={{ fontSize: 10, color: "#8ab", marginBottom: 8, lineHeight: 1.5 }}>💵 미국 주식 — 현재가 약 <b>${(sp / USD_KRW).toFixed(0)}</b> × 환율 ₩{USD_KRW.toLocaleString()} ≈ {won(sp)} <span onClick={function() { openTerm("exchange"); }} style={{ color: "#0af", cursor: "pointer" }}>📚</span></div>}<div style={{ fontSize: 9, color: "#556", letterSpacing: 1, marginBottom: 5 }}>💡 이 종목은?</div><div style={{ display: "flex", flexDirection: "column", gap: 5 }}>{interpretStock(sel).map(function(it, i) { var c = it.tone === "warn" ? "#fa5" : it.tone === "info" ? "#8ab" : "#0f6"; return <div key={i} onClick={it.term ? function() { openTerm(it.term); } : undefined} style={{ display: "flex", gap: 6, fontSize: 10, cursor: it.term ? "pointer" : "default", lineHeight: 1.4 }}><span style={{ color: c, fontWeight: 700, minWidth: 78 }}>{it.label}</span><span style={{ color: "#aab", flex: 1 }}>{it.text}{it.term ? <span style={{ color: "#0af" }}> 📚</span> : null}</span></div>; })}</div><div style={{ fontSize: 8, color: "#445", marginTop: 8 }}>* 시총·PER 등 지표는 2024년 기준 근사치입니다 (실시간 값 아님).</div></div>{held > 0 && <div style={{ marginTop: 10, padding: "6px 8px", background: "#ff008", border: "1px solid #ff030", borderRadius: 4 }}><div style={{ fontSize: 9, color: "#ff0", letterSpacing: 2, marginBottom: 3 }}>내 포지션</div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 14px" }}>{[["수량", held + "주", "#ff0"], ["평단가", won(sAvg), "#aab"], ["평가금", won(sp * held), "#ff0"], ["손익률", fmtP((sp - sAvg) / sAvg), (sp - sAvg) >= 0 ? "#0f6" : "#f33"]].map(function(t, i) { return <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #111a2d", fontSize: 11 }}><span style={{ color: "#556" }}>{t[0]}</span><span style={{ color: t[2], fontWeight: 700 }}>{t[1]}</span></div>; })}</div></div>}</div>}
-              {infoTab === "news" && <div style={{ maxHeight: 220, overflow: "auto" }}>{sectorNews.length === 0 ? <div style={{ color: "#334", fontSize: 11 }}>뉴스 없음</div> : sectorNews.slice(0, 25).map(function(n, i) { return <div key={i} style={{ padding: "4px 0", borderBottom: "1px solid #111a2d", display: "flex", gap: 6, alignItems: "start" }}><span style={{ color: "#334", fontSize: 9, minWidth: 24 }}>D{n.day}</span><span style={{ ...TAG(n.sector ? secC(n.sector) : "#556"), fontSize: 8, padding: "1px 4px" }}>{n.sector || "매크로"}</span><span style={{ fontSize: 10, color: n.type === "good" ? "#0f6" : n.type === "bad" ? "#f33" : "#667", lineHeight: 1.4, flex: 1 }}>{n.type === "good" ? "▲ " : n.type === "bad" ? "▼ " : "● "}{n.text}</span></div>; })}</div>}
+              {infoTab === "chart" && <div><StockChart data={sh} /><VolumeChart volumes={svol} /><div style={{ display: "flex", gap: 10, marginTop: 6, fontSize: 9, color: "#778", flexWrap: "wrap" }}><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>시가 <span style={{ color: "#aab" }}>{won(sdh.open)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>고가 <span style={{ color: "#f33" }}>{won(sdh.high)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>저가 <span style={{ color: "#38f" }}>{won(sdh.low)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("volume"); }}>거래량 <span style={{ color: "#aab" }}>{fmtF(sVolLast)}</span></span><span style={{ cursor: "pointer", color: "#0af" }} onClick={function() { openTerm("candle"); }}>📚 캔들이란?</span></div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginTop: 8 }}>{[["시총", wonK(sMcap), "#ff0", "marketcap"], ["PER", (sel ? sel.per : 0) + "x", "#aab", "per"], ["변동성", (sel ? (sel.volatility * 100).toFixed(1) : 0) + "%", "#f5a", "volatility"]].map(function(t, i) { return <div key={i} onClick={function() { openTerm(t[3]); }} title="탭하면 설명" style={{ background: "#0a0e1780", padding: "5px 6px", borderRadius: 4, textAlign: "center", cursor: "pointer" }}><div style={{ fontSize: 8, color: "#667" }}>{t[0]} <span style={{ color: "#0af" }}>ⓘ</span></div><div style={{ fontSize: 12, fontWeight: 700, color: t[2] }}>{t[1]}</div></div>; })}</div></div>}
+              {infoTab === "info" && <div><div style={{ fontSize: 10, color: "#667", lineHeight: 1.6, marginBottom: 10, padding: "6px 8px", background: "#0a0e1780", borderRadius: 4, borderLeft: "3px solid " + secC(sel ? sel.sector : "") }}>{sel ? sel.desc : ""}</div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 14px" }}>{[["시가총액", wonK(sMcap), "#ff0", "marketcap"], ["PER", (sel ? sel.per : 0) + "x", "#aab", "per"], ["발행주식", fmtN(sel ? sel.shares : 0), "#aab", "shares"], ["변동성", (sel ? (sel.volatility * 100).toFixed(1) : 0) + "%", "#f5a", "volatility"], ["시즌 고가", won(s52.high), "#f33"], ["시즌 저가", won(s52.low), "#38f"], ["시즌 수익률", fmtP(sTotRet), sTotRet >= 0 ? "#0f6" : "#f33", "returnrate"], ["CEO", sel ? sel.ceo : "", "#aab"], ["설립", sel ? sel.founded + "년" : "", "#aab"], ["직원수", sel ? sel.employees + "명" : "", "#aab"]].map(function(t, i) { var tid = t[3]; return <div key={i} onClick={tid ? function() { openTerm(tid); } : undefined} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #111a2d", fontSize: 11, cursor: tid ? "pointer" : "default" }}><span style={{ color: "#778" }}>{t[0]}{tid ? <span style={{ color: "#0af" }}> ⓘ</span> : null}</span><span style={{ color: t[2], fontWeight: 700 }}>{t[1]}</span></div>; })}</div><div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid #1a2a4a" }}>{sel && sel.market === "US" && <div style={{ fontSize: 10, color: "#8ab", marginBottom: 8, lineHeight: 1.5 }}>💵 미국 주식 — 현재가 약 <b>${(sp / USD_KRW).toFixed(0)}</b> × 환율 ₩{USD_KRW.toLocaleString()} ≈ {won(sp)} <span onClick={function() { openTerm("exchange"); }} style={{ color: "#0af", cursor: "pointer" }}>📚</span></div>}<div style={{ fontSize: 9, color: "#778", letterSpacing: 1, marginBottom: 5 }}>💡 이 종목은?</div><div style={{ display: "flex", flexDirection: "column", gap: 5 }}>{interpretStock(sel).map(function(it, i) { var c = it.tone === "warn" ? "#fa5" : it.tone === "info" ? "#8ab" : "#0f6"; return <div key={i} onClick={it.term ? function() { openTerm(it.term); } : undefined} style={{ display: "flex", gap: 6, fontSize: 10, cursor: it.term ? "pointer" : "default", lineHeight: 1.4 }}><span style={{ color: c, fontWeight: 700, minWidth: 78 }}>{it.label}</span><span style={{ color: "#aab", flex: 1 }}>{it.text}{it.term ? <span style={{ color: "#0af" }}> 📚</span> : null}</span></div>; })}</div><div style={{ fontSize: 8, color: "#667", marginTop: 8 }}>* 시총·PER 등 지표는 2024년 기준 근사치입니다 (실시간 값 아님).</div></div>{held > 0 && <div style={{ marginTop: 10, padding: "6px 8px", background: "#ff008", border: "1px solid #ff030", borderRadius: 4 }}><div style={{ fontSize: 9, color: "#ff0", letterSpacing: 2, marginBottom: 3 }}>내 포지션</div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 14px" }}>{[["수량", held + "주", "#ff0"], ["평단가", won(sAvg), "#aab"], ["평가금", won(sp * held), "#ff0"], ["손익률", fmtP((sp - sAvg) / sAvg), (sp - sAvg) >= 0 ? "#0f6" : "#f33"]].map(function(t, i) { return <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #111a2d", fontSize: 11 }}><span style={{ color: "#778" }}>{t[0]}</span><span style={{ color: t[2], fontWeight: 700 }}>{t[1]}</span></div>; })}</div></div>}</div>}
+              {infoTab === "news" && <div style={{ maxHeight: 220, overflow: "auto" }}>{sectorNews.length === 0 ? <div style={{ color: "#556", fontSize: 11 }}>뉴스 없음</div> : sectorNews.slice(0, 25).map(function(n, i) { return <div key={i} style={{ padding: "4px 0", borderBottom: "1px solid #111a2d", display: "flex", gap: 6, alignItems: "start" }}><span style={{ color: "#556", fontSize: 9, minWidth: 24 }}>D{n.day}</span><span style={{ ...TAG(n.sector ? secC(n.sector) : "#778"), fontSize: 8, padding: "1px 4px" }}>{n.sector || "매크로"}</span><span style={{ fontSize: 10, color: n.type === "good" ? "#0f6" : n.type === "bad" ? "#f33" : "#667", lineHeight: 1.4, flex: 1 }}>{n.type === "good" ? "▲ " : n.type === "bad" ? "▼ " : "● "}{n.text}</span></div>; })}</div>}
             </div>}
 
             {/* AI PLAYERS */}
-            {rightTab === "players" && <div style={{ ...PNL, marginBottom: 10 }}><div style={GLW("#a8f")} /><div style={{ fontSize: 9, color: "#556", letterSpacing: 2, marginBottom: 10 }}>🤖 AI 트레이더</div>
-              {aiPlayers.map(function(ai) { var ap = (ai.totalAssets - INITIAL_CASH) / INITIAL_CASH, pos = Object.entries(ai.portfolio); return <div key={ai.id} style={{ marginBottom: 10, padding: 10, background: "#0a0e1780", borderRadius: 6, border: "1px solid " + ai.color + "30" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 20 }}>{ai.avatar}</span><div><div style={{ fontSize: 13, fontWeight: 700, color: ai.color }}>{ai.name}</div><div style={{ fontSize: 9, color: "#556" }}>{ai.desc}</div></div></div><div style={{ textAlign: "right" }}><div style={{ fontSize: 14, fontWeight: 900, color: ap >= 0 ? "#0f6" : "#f33" }}>{fmtP(ap)}</div><div style={{ fontSize: 10, color: "#556" }}>{won(ai.totalAssets)}</div></div></div><div style={{ fontSize: 10, color: "#556", marginBottom: 4 }}>현금: <span style={{ color: "#0ff" }}>{won(ai.cash)}</span></div>{pos.length > 0 ? <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>{pos.map(function(e) { return <span key={e[0]} style={{ ...TAG(ai.color), fontSize: 9 }}>{e[0]} x{e[1]}</span>; })}</div> : <div style={{ fontSize: 9, color: "#334" }}>보유 종목 없음</div>}</div>; })}
+            {rightTab === "players" && <div style={{ ...PNL, marginBottom: 10 }}><div style={GLW("#a8f")} /><div style={{ fontSize: 9, color: "#778", letterSpacing: 2, marginBottom: 10 }}>🤖 AI 트레이더</div>
+              {aiPlayers.map(function(ai) { var ap = (ai.totalAssets - INITIAL_CASH) / INITIAL_CASH, pos = Object.entries(ai.portfolio); return <div key={ai.id} style={{ marginBottom: 10, padding: 10, background: "#0a0e1780", borderRadius: 6, border: "1px solid " + ai.color + "30" }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 20 }}>{ai.avatar}</span><div><div style={{ fontSize: 13, fontWeight: 700, color: ai.color }}>{ai.name}</div><div style={{ fontSize: 9, color: "#778" }}>{ai.desc}</div></div></div><div style={{ textAlign: "right" }}><div style={{ fontSize: 14, fontWeight: 900, color: ap >= 0 ? "#0f6" : "#f33" }}>{fmtP(ap)}</div><div style={{ fontSize: 10, color: "#778" }}>{won(ai.totalAssets)}</div></div></div><div style={{ fontSize: 10, color: "#778", marginBottom: 4 }}>현금: <span style={{ color: "#0ff" }}>{won(ai.cash)}</span></div>{pos.length > 0 ? <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>{pos.map(function(e) { return <span key={e[0]} style={{ ...TAG(ai.color), fontSize: 9 }}>{e[0]} x{e[1]}</span>; })}</div> : <div style={{ fontSize: 9, color: "#556" }}>보유 종목 없음</div>}</div>; })}
             </div>}
 
             {/* ═══════ TRADE BUTTONS ═══════ */}
@@ -629,10 +629,10 @@ export default function App() {
                       <div style={{ width: 36, height: 36, borderRadius: 8, background: accent + "20", border: "1px solid " + accent + "40", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: accent }}>{isBuy ? "B" : "S"}</div>
                       <div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: accent }}>{sel ? sel.id : ""} {isBuy ? "매수" : "매도"}</div>
-                        <div style={{ fontSize: 10, color: "#556" }}>{sel ? sel.name : ""} · 현재가 {won(sp)}</div>
+                        <div style={{ fontSize: 10, color: "#778" }}>{sel ? sel.name : ""} · 현재가 {won(sp)}</div>
                       </div>
                     </div>
-                    <button style={{ background: "none", border: "1px solid #333", color: "#556", cursor: "pointer", fontSize: 12, borderRadius: 4, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={function() { setShowTrade(false); }}>✕</button>
+                    <button style={{ background: "none", border: "1px solid #333", color: "#778", cursor: "pointer", fontSize: 12, borderRadius: 4, width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={function() { setShowTrade(false); }}>✕</button>
                   </div>
 
                   {/* Quick presets */}
@@ -652,37 +652,37 @@ export default function App() {
 
                   {/* Quantity input */}
                   <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 12 }}>
-                    <button style={{ ...BTN("#556"), padding: "8px 10px", fontSize: 14, fontWeight: 700 }} onClick={function() { setTradeAmount(Math.max(1, tradeAmount - 10)); }}>-10</button>
-                    <button style={{ ...BTN("#556"), padding: "8px 10px", fontSize: 14, fontWeight: 700 }} onClick={function() { setTradeAmount(Math.max(1, tradeAmount - 1)); }}>-</button>
+                    <button style={{ ...BTN("#778"), padding: "8px 10px", fontSize: 14, fontWeight: 700 }} onClick={function() { setTradeAmount(Math.max(1, tradeAmount - 10)); }}>-10</button>
+                    <button style={{ ...BTN("#778"), padding: "8px 10px", fontSize: 14, fontWeight: 700 }} onClick={function() { setTradeAmount(Math.max(1, tradeAmount - 1)); }}>-</button>
                     <input type="number" value={tradeAmount} onChange={function(e) { setTradeAmount(Math.max(1, parseInt(e.target.value) || 1)); }} style={{ flex: 1, background: "#080c14", border: "2px solid " + accent + "50", color: accent, textAlign: "center", padding: "10px 8px", borderRadius: 6, fontFamily: "inherit", fontSize: 20, fontWeight: 900, outline: "none" }} />
-                    <button style={{ ...BTN("#556"), padding: "8px 10px", fontSize: 14, fontWeight: 700 }} onClick={function() { setTradeAmount(tradeAmount + 1); }}>+</button>
-                    <button style={{ ...BTN("#556"), padding: "8px 10px", fontSize: 14, fontWeight: 700 }} onClick={function() { setTradeAmount(tradeAmount + 10); }}>+10</button>
+                    <button style={{ ...BTN("#778"), padding: "8px 10px", fontSize: 14, fontWeight: 700 }} onClick={function() { setTradeAmount(tradeAmount + 1); }}>+</button>
+                    <button style={{ ...BTN("#778"), padding: "8px 10px", fontSize: 14, fontWeight: 700 }} onClick={function() { setTradeAmount(tradeAmount + 10); }}>+10</button>
                   </div>
 
                   {/* Summary card */}
                   <div style={{ background: "#080c14", borderRadius: 6, padding: "10px 12px", marginBottom: 12, border: "1px solid #1a2a4a" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                      <span style={{ fontSize: 11, color: "#556" }}>주문 금액</span>
+                      <span style={{ fontSize: 11, color: "#778" }}>주문 금액</span>
                       <span style={{ fontSize: 16, fontWeight: 900, color: "#ff0" }}>{won(tradeCost)}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, color: "#445" }}>수량</span>
+                      <span style={{ fontSize: 10, color: "#667" }}>수량</span>
                       <span style={{ fontSize: 11, color: "#aab" }}>{tradeAmount}주 × {won(sp)}</span>
                     </div>
                     {isBuy && <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, color: "#445" }}>현금 대비</span>
+                      <span style={{ fontSize: 10, color: "#667" }}>현금 대비</span>
                       <span style={{ fontSize: 11, color: parseFloat(cashPct) > 80 ? "#f33" : "#aab" }}>{cashPct}%</span>
                     </div>}
                     {isBuy && <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 10, color: "#445" }}>최대 매수 가능</span>
+                      <span style={{ fontSize: 10, color: "#667" }}>최대 매수 가능</span>
                       <span style={{ fontSize: 11, color: "#0ff" }}>{maxBuy}주</span>
                     </div>}
                     {!isBuy && <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, color: "#445" }}>보유량 대비</span>
+                      <span style={{ fontSize: 10, color: "#667" }}>보유량 대비</span>
                       <span style={{ fontSize: 11, color: "#aab" }}>{heldPct}% (보유 {held}주)</span>
                     </div>}
                     {!isBuy && held > 0 && sAvg > 0 && <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: 10, color: "#445" }}>예상 실현손익</span>
+                      <span style={{ fontSize: 10, color: "#667" }}>예상 실현손익</span>
                       <span style={{ fontSize: 11, color: (sp - sAvg) >= 0 ? "#0f6" : "#f33", fontWeight: 700 }}>{(sp - sAvg) >= 0 ? "+" : ""}{won((sp - sAvg) * tradeAmount)}</span>
                     </div>}
                   </div>
@@ -696,13 +696,13 @@ export default function App() {
             })()}
 
             {/* ABILITIES */}
-            {mode === "force" && <div style={{ ...PNL, marginBottom: 10 }}><div style={GLW("#f0f")} /><div style={{ fontSize: 9, color: "#556", letterSpacing: 2, marginBottom: 8 }}>🐋 세력 능력</div>
-              {abilityMode && <div style={{ marginBottom: 8, padding: 6, background: "#f0f10", border: "1px solid #f0f40", borderRadius: 4, fontSize: 11 }}><span style={{ color: "#f0f" }}>{ABILITIES[abilityMode].icon} {ABILITIES[abilityMode].name}</span><span style={{ color: "#778" }}> → 대상 종목 선택</span><div style={{ display: "flex", gap: 4, marginTop: 5, flexWrap: "wrap" }}>{STOCKS.map(function(st) { return <button key={st.id} style={BTN("#f0f")} onClick={function() { useAb(abilityMode, st.id); }}>{st.id}</button>; })}<button style={BTN("#556")} onClick={function() { setAbilityMode(null); }}>취소</button></div></div>}
-              {Object.entries(ABILITIES).map(function(e) { var k = e[0], ab = e[1], cd = abilities[k] ? abilities[k].cooldown : 0, can = cd === 0 && cash >= ab.cost; return <div key={k} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", borderRadius: 4, background: can ? "#f0f08" : "#111", border: "1px solid " + (can ? "#f0f30" : "#222"), opacity: can ? 1 : 0.5, marginBottom: 4 }}><span style={{ fontSize: 18 }}>{ab.icon}</span><div style={{ flex: 1 }}><div style={{ fontSize: 11, fontWeight: 700, color: can ? "#f0f" : "#556" }}>{ab.name}</div><div style={{ fontSize: 9, color: "#445" }}>{ab.desc}</div></div><div style={{ textAlign: "right" }}><div style={{ fontSize: 9, color: "#ff0" }}>{won(ab.cost)}</div>{cd > 0 && <div style={{ fontSize: 9, color: "#f33" }}>CD:{cd}</div>}</div><button style={BTN("#f0f", !can)} disabled={!can} onClick={function() { if (can) setAbilityMode(k); }}>발동</button></div>; })}
+            {mode === "force" && <div style={{ ...PNL, marginBottom: 10 }}><div style={GLW("#f0f")} /><div style={{ fontSize: 9, color: "#778", letterSpacing: 2, marginBottom: 8 }}>🐋 세력 능력</div>
+              {abilityMode && <div style={{ marginBottom: 8, padding: 6, background: "#f0f10", border: "1px solid #f0f40", borderRadius: 4, fontSize: 11 }}><span style={{ color: "#f0f" }}>{ABILITIES[abilityMode].icon} {ABILITIES[abilityMode].name}</span><span style={{ color: "#778" }}> → 대상 종목 선택</span><div style={{ display: "flex", gap: 4, marginTop: 5, flexWrap: "wrap" }}>{STOCKS.map(function(st) { return <button key={st.id} style={BTN("#f0f")} onClick={function() { useAb(abilityMode, st.id); }}>{st.id}</button>; })}<button style={BTN("#778")} onClick={function() { setAbilityMode(null); }}>취소</button></div></div>}
+              {Object.entries(ABILITIES).map(function(e) { var k = e[0], ab = e[1], cd = abilities[k] ? abilities[k].cooldown : 0, can = cd === 0 && cash >= ab.cost; return <div key={k} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", borderRadius: 4, background: can ? "#f0f08" : "#111", border: "1px solid " + (can ? "#f0f30" : "#222"), opacity: can ? 1 : 0.5, marginBottom: 4 }}><span style={{ fontSize: 18 }}>{ab.icon}</span><div style={{ flex: 1 }}><div style={{ fontSize: 11, fontWeight: 700, color: can ? "#f0f" : "#778" }}>{ab.name}</div><div style={{ fontSize: 9, color: "#667" }}>{ab.desc}</div></div><div style={{ textAlign: "right" }}><div style={{ fontSize: 9, color: "#ff0" }}>{won(ab.cost)}</div>{cd > 0 && <div style={{ fontSize: 9, color: "#f33" }}>CD:{cd}</div>}</div><button style={BTN("#f0f", !can)} disabled={!can} onClick={function() { if (can) setAbilityMode(k); }}>발동</button></div>; })}
             </div>}
 
             {/* PROGRESS */}
-            <div style={{ marginTop: 6 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "#445", marginBottom: 3 }}><span>시즌 진행도</span><span>{day}/{SEASON_DAYS}</span></div><div style={{ height: 4, background: "#111a2d", borderRadius: 2, overflow: "hidden" }}><div style={{ height: "100%", width: (day / SEASON_DAYS * 100) + "%", background: "linear-gradient(90deg, #0ff, #f0f)", borderRadius: 2, transition: "width 0.3s" }} /></div></div>
+            <div style={{ marginTop: 6 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "#667", marginBottom: 3 }}><span>시즌 진행도</span><span>{day}/{SEASON_DAYS}</span></div><div style={{ height: 4, background: "#111a2d", borderRadius: 2, overflow: "hidden" }}><div style={{ height: "100%", width: (day / SEASON_DAYS * 100) + "%", background: "linear-gradient(90deg, #0ff, #f0f)", borderRadius: 2, transition: "width 0.3s" }} /></div></div>
           </div>
         </div>
       </div>

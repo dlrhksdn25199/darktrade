@@ -1,7 +1,8 @@
+// 가독성 우선: 네온 글로우를 아주 옅게만(색은 유지, 번짐 제거). 큰 제목만 은은하게.
 export function neon(c) {
   return {
     color: c || '#0ff',
-    textShadow: '0 0 7px ' + (c || '#0ff') + ', 0 0 20px ' + (c || '#0ff') + '40',
+    textShadow: '0 0 1px ' + (c || '#0ff') + '55',
   };
 }
 
@@ -32,7 +33,7 @@ export function btn(c, off) {
     fontFamily: 'inherit',
     fontSize: '12px',
     transition: 'all 0.2s',
-    textShadow: off ? 'none' : '0 0 8px ' + (c || '#0ff') + '60',
+    textShadow: 'none',
   };
 }
 
