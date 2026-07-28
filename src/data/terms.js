@@ -8,6 +8,7 @@ export var TERM_CATS = [
   { key: 'L1', label: '내 돈 읽기', desc: '현금·평가금·수익률·평단가', color: '#0f6' },
   { key: 'L2', label: '종목 지표', desc: '시총·PER·변동성·캔들', color: '#ff0' },
   { key: 'L3', label: '시장 읽기', desc: '뉴스·섹터·분산·손절', color: '#f5a' },
+  { key: 'L4', label: '투자 스타일', desc: '추세추종·가치투자·역추세·고빈도', color: '#f80' },
   { key: 'US', label: '미장 기초', desc: '미국 주식·환율·거래시간', color: '#a8f' },
 ];
 
@@ -159,6 +160,28 @@ export var TERMS = [
     body: '수익 가능성과 손실 가능성은 대체로 함께 커진다(고위험 고수익). 무작정 큰 수익을 좇기보다, 내가 견딜 수 있는 손실 크기를 먼저 정하는 게 투자의 시작이다.',
     example: '변동성 큰 테슬라는 크게 벌 수도, 크게 잃을 수도 있는 고리스크 종목.',
     related: ['volatility', 'diversify', 'stoploss'] },
+
+  // ── L4 : 투자 스타일 ──
+  { id: 'momentum', term: '추세추종 (모멘텀)', cat: 'L4',
+    short: '오르는 종목을 따라 사는 전략.',
+    body: '"오르는 놈이 더 오른다"에 베팅한다. 상승 추세에 올라타 흐름을 먹는 방식. 방향을 잘 타면 크게 벌지만, 고점에 물리면 손실도 크다. 이 게임의 AlgoX가 이 전략을 쓴다.',
+    example: '며칠째 오르는 엔비디아를 "더 갈 것 같다"며 따라 사는 것.',
+    related: ['trend', 'contrarian', 'risk'] },
+  { id: 'value', term: '가치투자', cat: 'L4',
+    short: '싸게(떨어졌을 때) 사서 오래 기다리는 전략.',
+    body: '회사 가치 대비 주가가 쌀 때 사서 제값이 될 때까지 보유한다. 인내심이 무기. 저PER 종목을 선호하는 경향. 다만 "싼 데는 이유가 있는" 경우 더 떨어질 수도 있다. 이 게임의 DeepValue가 이 전략.',
+    example: '하락한 현대차(저PER)를 "제값보다 싸다"며 사서 묵히는 것.',
+    related: ['per', 'trend', 'stoploss'] },
+  { id: 'contrarian', term: '역추세 (반대매매)', cat: 'L4',
+    short: '남들과 반대로 — 오르면 팔고 내리면 산다.',
+    body: '군중이 몰릴 때 반대편에 선다. 과열되면 팔고 공포에 사는 방식. 잘 맞으면 남보다 싸게 사고 비싸게 팔지만, 추세가 계속되면 일찍 팔거나 일찍 사서 물린다. 이 게임의 QuantBot이 이 전략.',
+    example: '모두가 사서 급등할 때 오히려 파는 것.',
+    related: ['momentum', 'trend', 'risk'] },
+  { id: 'aggressive', term: '고빈도·공격적 매매', cat: 'L4',
+    short: '자주·크게 사고팔며 회전율을 높이는 스타일.',
+    body: '기회가 보이면 큰 비중으로 자주 사고판다. 수익 기회가 많지만 그만큼 실수·손실 노출도, (실전이라면) 거래비용도 커진다. 이 게임의 SharkFin이 이 스타일.',
+    example: '하루에도 여러 종목을 크게 사고파는 것.',
+    related: ['risk', 'diversify'] },
 
   // ── US : 미장 기초 ──
   { id: 'usstock', term: '미장 (미국 주식)', cat: 'US',

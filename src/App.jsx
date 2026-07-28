@@ -8,6 +8,7 @@ import { enrichNews, chainSummary } from "./utils/newsImpact";
 import { buildQuiz } from "./utils/quiz";
 import { reviewDay } from "./utils/dayReview";
 import { interpretStock } from "./utils/interpret";
+import { analyzeStyle } from "./utils/styleAnalysis";
 import { fmtN, fmtD, fmtF, fmtP, won, wonK } from "./utils/format";
 import { genPrice as genP, uid } from "./utils/helpers";
 import { aiDecide } from "./utils/aiEngine";
@@ -115,14 +116,14 @@ export default function App() {
       setCash(function(c) { return c - price * qty; }); var pq = portfolio[sid] || 0, pa = avgCost[sid] || 0;
       setAvgCost(function(a) { return { ...a, [sid]: (pa * pq + price * qty) / (pq + qty) }; });
       setPortfolio(function(p) { return { ...p, [sid]: pq + qty }; });
-      setEventLog(function(l) { return l.concat([{ day: day, text: sid + " " + qty + "주 매수 @" + won(price), type: "buy" }]); }); notify(sid + " " + qty + "주 매수 완료", "success");
+      setEventLog(function(l) { return l.concat([{ day: day, text: sid + " " + qty + "주 매수 @" + won(price), type: "buy", stock: sid, qty: qty, price: price }]); }); notify(sid + " " + qty + "주 매수 완료", "success");
       if (!coachSeen.firstBuy) { setCoach({ type: "firstBuy", sid: sid, price: price, qty: qty, cost: price * qty }); setCoachSeen(function(p) { return { ...p, firstBuy: true }; }); }
     } else {
       var held = portfolio[sid] || 0; if (qty > held) { notify("보유 수량 부족!", "error"); return; }
       setCash(function(c) { return c + price * qty; });
       setPortfolio(function(p) { var n = { ...p }; n[sid] = (n[sid] || 0) - qty; if (n[sid] <= 0) delete n[sid]; return n; });
       if (held - qty <= 0) setAvgCost(function(a) { var n = { ...a }; delete n[sid]; return n; });
-      setEventLog(function(l) { return l.concat([{ day: day, text: sid + " " + qty + "주 매도 @" + won(price), type: "sell" }]); }); notify(sid + " " + qty + "주 매도 완료", "success");
+      setEventLog(function(l) { return l.concat([{ day: day, text: sid + " " + qty + "주 매도 @" + won(price), type: "sell", stock: sid, qty: qty, price: price }]); }); notify(sid + " " + qty + "주 매도 완료", "success");
       if (!coachSeen.firstSell) { var avgS = avgCost[sid] || price, plS = (price - avgS) * qty; setCoach({ type: "firstSell", sid: sid, price: price, qty: qty, avg: avgS, pl: plS }); setCoachSeen(function(p) { return { ...p, firstSell: true }; }); }
     }
     setShowTrade(false);
@@ -301,6 +302,8 @@ export default function App() {
           <div style={{ textAlign: "center", marginTop: 18 }}>
             {learnFrom === "game"
               ? <button style={{ ...BTN("#0ff"), padding: "10px 24px" }} onClick={function() { setScreen("game"); }}>▶ 게임으로 돌아가기</button>
+              : learnFrom === "result"
+              ? <button style={{ ...BTN("#0ff"), padding: "10px 24px" }} onClick={function() { setScreen("result"); }}>◆ 결과로 돌아가기</button>
               : <button style={{ ...BTN("#0ff"), padding: "10px 24px" }} onClick={function() { setScreen("modeSelect"); }}>▶ 게임 시작</button>}
             <button style={{ ...BTN("#556"), padding: "10px 24px", marginLeft: 10 }} onClick={function() { setScreen("menu"); }}>← 메뉴</button>
           </div>
@@ -324,6 +327,25 @@ export default function App() {
           <div style={{ ...PNL, marginBottom: 16 }}><div style={GLW("#ff0")} /><h3 style={{ margin: "0 0 12px", fontSize: 13, ...neon("#ff0") }}>◆ 최종 순위</h3>
             {board.map(function(r, i) { return <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", background: r.isPlayer ? "#0ff08" : "transparent", borderRadius: 4, borderLeft: "3px solid " + (i === 0 ? "#ff0" : i === 1 ? "#aaa" : i === 2 ? "#a65" : "#333"), marginBottom: 4 }}><span style={{ fontSize: 14, fontWeight: 900, color: i === 0 ? "#ff0" : "#556", width: 24 }}>#{i + 1}</span><span style={{ fontSize: 16 }}>{r.avatar}</span><span style={{ flex: 1, fontSize: 12, color: r.isPlayer ? "#0ff" : "#aab", fontWeight: r.isPlayer ? 700 : 400 }}>{r.name}</span><span style={{ fontSize: 13, fontWeight: 700, color: r.profitRate >= 0 ? "#0f6" : "#f33" }}>{fmtP(r.profitRate)}</span><span style={{ fontSize: 10, color: "#556" }}>{wonK(r.totalAssets)}</span></div>; })}
           </div>
+          {eventLog && eventLog.length > 0 && (function() {
+            var stl = analyzeStyle(eventLog, priceHistory, STOCKS, AI_PLAYERS), ai = stl.matchedAi || {};
+            var termId = ({ momentum: "momentum", value: "value", contrarian: "contrarian", aggressive: "aggressive", random: "trend" })[ai.strategy] || "trend";
+            var termCat = (TERMS.find(function(x) { return x.id === termId; }) || {}).cat || "L4";
+            return <div style={{ ...PNL, marginBottom: 16 }}><div style={GLW(ai.color || "#f80")} />
+              <h3 style={{ margin: "0 0 10px", fontSize: 13, ...neon(ai.color || "#f80") }}>🧭 투자 스타일 분석</h3>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <span style={{ fontSize: 28 }}>{ai.avatar}</span>
+                <div><div style={{ fontSize: 14, fontWeight: 900, color: ai.color || "#f80" }}>{ai.name}와(과) 닮았어요</div><div style={{ fontSize: 10, color: "#778" }}>{ai.desc} · 닮은 정도 {Math.round((stl.confidence || 0) * 100)}%</div></div>
+              </div>
+              <div style={{ fontSize: 11, color: "#c8d6e5", lineHeight: 1.6, marginBottom: 8 }}>{stl.summary}</div>
+              {stl.traits && stl.traits.length > 0 && <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 8 }}>{stl.traits.map(function(t, i) { return <span key={i} style={{ ...TAG(ai.color || "#f80"), fontSize: 9 }}>{t}</span>; })}</div>}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <div><div style={{ fontSize: 9, color: "#0f6", letterSpacing: 1, marginBottom: 3 }}>강점</div>{(stl.strengths || []).map(function(t, i) { return <div key={i} style={{ fontSize: 10, color: "#aab", lineHeight: 1.5 }}>+ {t}</div>; })}</div>
+                <div><div style={{ fontSize: 9, color: "#fa5", letterSpacing: 1, marginBottom: 3 }}>주의점</div>{(stl.weaknesses || []).map(function(t, i) { return <div key={i} style={{ fontSize: 10, color: "#aab", lineHeight: 1.5 }}>! {t}</div>; })}</div>
+              </div>
+              <button style={{ ...BTN(ai.color || "#f80"), padding: "7px 14px", fontSize: 11 }} onClick={function() { setLearnFrom("result"); setScreen("learn"); setLearnCat(termCat); setLearnQuery(""); setExpandedTerm(termId); }}>📚 {ai.name}의 전략 배우기</button>
+            </div>;
+          })()}
           <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
             <button style={BTN("#0ff")} onClick={function() { setSeasonNum(function(s) { return s + 1; }); setScreen("modeSelect"); }}>▶ 다음 시즌</button>
             <button style={BTN("#f0f")} onClick={function() { setScreen("menu"); }}>◆ 메인 메뉴</button>
