@@ -164,7 +164,7 @@ export default function App() {
 
   // ── MENU ──
   if (screen === "menu") return (
-    <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "'Courier New', monospace" }}>
+    <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', sans-serif" }}>
       <div style={{ position: "fixed", inset: 0, background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,255,0.015) 2px,rgba(0,255,255,0.015) 4px)", pointerEvents: "none", zIndex: 100 }} />
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "20px" }}>
         <div style={{ textAlign: "center", marginBottom: "50px" }}>
@@ -189,7 +189,7 @@ export default function App() {
 
   // ── MODE ──
   if (screen === "modeSelect") return (
-    <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "'Courier New', monospace" }}>
+    <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', sans-serif" }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 20 }}>
         <div style={{ fontSize: 11, letterSpacing: 4, color: "#778", marginBottom: 30 }}>[ 모드 선택 ]</div>
         <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
@@ -204,7 +204,7 @@ export default function App() {
 
   // ── HELP ──
   if (screen === "help") return (
-    <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "'Courier New', monospace" }}>
+    <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', sans-serif" }}>
       <div style={{ position: "fixed", inset: 0, background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,255,0.015) 2px,rgba(0,255,255,0.015) 4px)", pointerEvents: "none", zIndex: 100 }} />
       <div style={{ padding: "30px 20px", maxWidth: 620, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
@@ -262,7 +262,7 @@ export default function App() {
       : TERMS.filter(function(t) { return t.cat === learnCat; });
     var jumpTo = function(id) { var t = TERMS.find(function(x) { return x.id === id; }); if (!t) return; setLearnQuery(""); setLearnCat(t.cat); setExpandedTerm(id); };
     return (
-      <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "'Courier New', monospace" }}>
+      <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', sans-serif" }}>
         <div style={{ position: "fixed", inset: 0, background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,255,0.015) 2px,rgba(0,255,255,0.015) 4px)", pointerEvents: "none", zIndex: 100 }} />
         <div style={{ padding: "30px 20px", maxWidth: 680, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 18 }}>
@@ -336,7 +336,7 @@ export default function App() {
     var last = rankings[rankings.length - 1];
     var board = (last && last.allRanks) || leaderboard;
     return (
-      <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "'Courier New', monospace" }}>
+      <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', sans-serif" }}>
         <div style={{ padding: "30px 20px", maxWidth: 600, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
             <div style={{ fontSize: 10, letterSpacing: 4, color: "#778", marginBottom: 10 }}>[ 시즌 {seasonNum} 종료 ]</div>
@@ -395,7 +395,7 @@ export default function App() {
   var heldPct = held > 0 ? ((tradeAmount / held) * 100).toFixed(1) : "0.0";
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "'Courier New', monospace", position: "relative", overflow: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', sans-serif", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "fixed", inset: 0, background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,255,0.015) 2px,rgba(0,255,255,0.015) 4px)", pointerEvents: "none", zIndex: 100 }} />
       {notification && <div style={{ position: "fixed", top: 14, left: "50%", transform: "translateX(-50%)", zIndex: 200, padding: "9px 22px", borderRadius: 6, fontSize: 12, fontWeight: 700, letterSpacing: 1, background: nc + "15", border: "1px solid " + nc, color: nc, animation: "fadeIn 0.3s" }}>{notification.msg}</div>}
 
