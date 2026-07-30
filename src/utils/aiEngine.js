@@ -7,7 +7,8 @@ export function aiDecide(ai, prices, history, aiCash, aiPortfolio) {
     return s + (prices[e[0]] || 0) * e[1];
   }, 0);
   var investRatio = totalHeld / (aiCash + totalHeld + 0.01);
-  var shuffled = STOCKS.slice().sort(function() { return Math.random() - 0.5; });
+  // 가격이 존재하는 종목만 대상 (실전 모드는 에피소드 로스터만 가격을 가짐)
+  var shuffled = STOCKS.filter(function(s) { return prices[s.id] != null; }).sort(function() { return Math.random() - 0.5; });
 
   shuffled.forEach(function(s) {
     var h = history[s.id] || [];

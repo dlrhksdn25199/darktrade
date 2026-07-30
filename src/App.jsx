@@ -10,6 +10,7 @@ import { reviewDay } from "./utils/dayReview";
 import { interpretStock } from "./utils/interpret";
 import { analyzeStyle } from "./utils/styleAnalysis";
 import { MANIP_EDU, MANIP_VICTIM } from "./data/manipulation";
+import { REPLAY_EPISODES } from "./data/replayEpisodes";
 import { fmtN, fmtD, fmtF, fmtP, won, wonK } from "./utils/format";
 import { genPrice as genP, uid } from "./utils/helpers";
 import { aiDecide } from "./utils/aiEngine";
@@ -57,27 +58,64 @@ export default function App() {
   var [quizOff, setQuizOff] = s(false);  // 퀴즈 그만 보기 토글
   var [dayReviewData, setDayReviewData] = s(null); // L3 하루 마감 리뷰 결과
   var [manip, setManip] = s(null);       // L5 세력 교육 모달 { kind:'perp'|'victim', key/stock/pct }
+  var [episode, setEpisode] = s(null);   // 실전 모드 에피소드 (roster 포함) — null=일반/세력
 
   var notify = _c(function(msg, type) { setNotification({ msg: msg, type: type || "info" }); setTimeout(function() { setNotification(null); }, 2500); }, []);
 
-  var initGame = _c(function(m) {
+  var initGame = _c(function(m, epId) {
+    // 실전 모드: 에피소드 로스터(실존 5종목 + 실제 시작가) 구성
+    var ep = null, roster = STOCKS;
+    if (m === "replay") {
+      var found = REPLAY_EPISODES.find(function(e) { return e.id === epId; });
+      if (found) {
+        roster = Object.keys(found.series).map(function(id) { var base = STOCKS.find(function(s) { return s.id === id; }) || { id: id, name: id, sector: "", per: 0, shares: 0, volatility: 0 }; return { ...base, basePrice: Math.round(found.series[id].close[0]) }; });
+        ep = { id: found.id, playLabel: found.playLabel, revealTitle: found.revealTitle, period: found.period, revealSummary: found.revealSummary, lesson: found.lesson, market: found.market, dates: found.dates, series: found.series, roster: roster };
+      }
+    }
+    setEpisode(ep);
     setMode(m); setDay(1); setCash(INITIAL_CASH); setPortfolio({}); setAvgCost({}); setEventLog([]); setPendingPumps([]);
     setAbilities({ volumeBomb: { cooldown: 0 }, shortAttack: { cooldown: 0 }, pumpScheme: { cooldown: 0 } }); setInfoTab("chart"); setRightTab("detail"); setShowTrade(false); setAbilityMode(null);
     setDayReviewData(null); setQuiz(null); setQuizOff(false); setManip(null);
+    setSelectedStock(roster[0].id);
     var ip = {}, ih = {}, iv = {}, idh = {}, iw = {};
-    STOCKS.forEach(function(st) { ip[st.id] = st.basePrice; ih[st.id] = [st.basePrice]; iv[st.id] = [Math.floor(Math.random() * 50000) + 10000]; idh[st.id] = { high: st.basePrice, low: st.basePrice, open: st.basePrice }; iw[st.id] = { high: st.basePrice, low: st.basePrice }; });
+    roster.forEach(function(st) { var p0 = st.basePrice; ip[st.id] = p0; ih[st.id] = [p0]; iv[st.id] = [Math.floor(Math.random() * 50000) + 10000]; idh[st.id] = { high: p0, low: p0, open: p0 }; iw[st.id] = { high: p0, low: p0 }; });
     setPrices(ip); setPriceHistory(ih); setVolumes(iv); setDayHighLow(idh); setWeek52(iw);
     setAiPlayers(AI_PLAYERS.map(function(a) { return { ...a, cash: INITIAL_CASH, portfolio: {}, totalAssets: INITIAL_CASH }; }));
-    setAiActivity([]); setNews([{ text: "시뮬레이션 시작. 시장이 열렸습니다.", type: "system" }]); setNewsHistory([]); setScreen("game");
+    setAiActivity([]); setNews([{ text: ep ? (ep.playLabel + " — 실제 과거 시세로 진행합니다.") : "시뮬레이션 시작. 시장이 열렸습니다.", type: "system" }]); setNewsHistory([]); setScreen("game");
   }, []);
 
   var totalAssets = cash + Object.entries(portfolio).reduce(function(s, e) { return s + (prices[e[0]] || 0) * e[1]; }, 0);
   var profitRate = (totalAssets - INITIAL_CASH) / INITIAL_CASH;
 
   var nextDay = _c(function() {
-    if (day >= SEASON_DAYS) {
+    var len = (mode === "replay" && episode) ? episode.dates.length : SEASON_DAYS;
+    if (day >= len) {
       var allR = [{ id: "PLAYER", name: "나", avatar: "👤", totalAssets: totalAssets, profitRate: profitRate, color: "#6fb0b4", isPlayer: true }].concat(aiPlayers.map(function(a) { return { ...a, profitRate: (a.totalAssets - INITIAL_CASH) / INITIAL_CASH }; })).sort(function(a, b) { return b.profitRate - a.profitRate; });
       setRankings(function(p) { return p.concat([{ id: uid(), season: seasonNum, mode: mode, totalAssets: totalAssets, profitRate: profitRate, allRanks: allR }]); }); setScreen("result"); return;
+    }
+    // ── 실전 모드: 실제 과거 시세 리플레이 (RNG/뉴스 없음, 스포일러 차단) ──
+    if (mode === "replay" && episode) {
+      var di = day; // 표시 인덱스 = day-1 → 다음 날은 index = day
+      var rnp = { ...prices }, rnh = { ...priceHistory }, rnv = { ...volumes }, rndh = {}, rnw = { ...week52 };
+      episode.roster.forEach(function(st) {
+        var se = episode.series[st.id]; if (!se) return;
+        var c = Math.round(se.close[di]), o = Math.round(se.open[di]), h = Math.round(se.high[di]), l = Math.round(se.low[di]);
+        rnp[st.id] = c; rnh[st.id] = (rnh[st.id] || []).concat([c]); rnv[st.id] = (rnv[st.id] || []).concat([Math.floor(Math.random() * 300000 + 50000)]);
+        rndh[st.id] = { high: h, low: l, open: o }; var rp52 = rnw[st.id] || { high: c, low: c }; rnw[st.id] = { high: Math.max(rp52.high, h), low: Math.min(rp52.low, l) };
+      });
+      var rAis = aiPlayers.map(function(ai) { return { ...ai, portfolio: { ...ai.portfolio } }; }), rActs = [];
+      rAis.forEach(function(ai) {
+        aiDecide(ai, rnp, rnh, ai.cash, ai.portfolio).forEach(function(d) {
+          if (d.type === "buy") { var cost = rnp[d.stock] * d.qty; if (cost <= ai.cash && d.qty > 0) { ai.cash -= cost; ai.portfolio[d.stock] = (ai.portfolio[d.stock] || 0) + d.qty; rActs.push({ name: ai.name, avatar: ai.avatar, color: ai.color, text: d.stock + " " + d.qty + "주 매수", type: "buy" }); } }
+          else { var rheld = ai.portfolio[d.stock] || 0, rqty = Math.min(d.qty, rheld); if (rqty > 0) { ai.cash += rnp[d.stock] * rqty; ai.portfolio[d.stock] = rheld - rqty; if (ai.portfolio[d.stock] <= 0) delete ai.portfolio[d.stock]; rActs.push({ name: ai.name, avatar: ai.avatar, color: ai.color, text: d.stock + " " + rqty + "주 매도", type: "sell" }); } }
+        });
+        ai.totalAssets = ai.cash + Object.entries(ai.portfolio).reduce(function(s, e) { return s + (rnp[e[0]] || 0) * e[1]; }, 0);
+      });
+      setAiPlayers(rAis); setAiActivity(rActs);
+      setPrices(rnp); setPriceHistory(rnh); setVolumes(rnv); setDayHighLow(rndh); setWeek52(rnw);
+      setNews([{ text: episode.playLabel + " — " + (day + 1) + "일차 (정체는 종료 후 공개)", type: "system" }]);
+      setDay(function(d) { return d + 1; });
+      return;
     }
     var numN = Math.random() < 0.25 ? 3 : Math.random() < 0.45 ? 2 : 1, todayN = [], used = {};
     for (var ni = 0; ni < numN; ni++) { if (Math.random() < 0.75 || ni === 0) { var idx; do { idx = Math.floor(Math.random() * NEWS_POOL.length); } while (used[idx]); used[idx] = true; todayN.push(NEWS_POOL[idx]); } }
@@ -124,7 +162,7 @@ export default function App() {
     if (!quizOff) { for (var qi = 0; qi < fN.length; qi++) { var qz = buildQuiz(fN[qi], STOCKS); if (qz) { setQuiz({ q: qz, answered: null }); break; } } }
     // L5 피해자 체험 모달 (퀴즈보다 우선 노출)
     if (victim) { setManip({ kind: "victim", stock: victim.stock, pct: victim.pct }); setCoachSeen(function(p) { return { ...p, victim: true }; }); }
-  }, [day, prices, priceHistory, volumes, pendingPumps, week52, mode, totalAssets, profitRate, seasonNum, aiPlayers, portfolio, avgCost, cash, quizOff, coachSeen]);
+  }, [day, prices, priceHistory, volumes, pendingPumps, week52, mode, totalAssets, profitRate, seasonNum, aiPlayers, portfolio, avgCost, cash, quizOff, coachSeen, episode]);
 
   var executeTrade = _c(function(type, sid, qty) {
     var price = prices[sid];
@@ -193,8 +231,8 @@ export default function App() {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 20 }}>
         <div style={{ fontSize: 11, letterSpacing: 4, color: "#778", marginBottom: 30 }}>[ 모드 선택 ]</div>
         <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
-          {[{ k: "normal", i: "📈", t: "일반 모드", d: "순수 실력으로 승부. " + SEASON_DAYS + "일 안에 AI를 이겨라.", c: "#6fb0b4", tg: "CLASSIC" }, { k: "force", i: "🐋", t: "세력 모드", d: "특수 능력으로 시장을 지배하라.", c: "#b183ac", tg: "WHALE" }].map(function(m) {
-            return <div key={m.k} style={{ ...PNL, width: 280, cursor: "pointer", transition: "all 0.3s" }} onClick={function() { initGame(m.k); if (!coachSeen.intro) { setCoach({ type: "intro" }); setCoachSeen(function(p) { return { ...p, intro: true }; }); } }}><div style={GLW(m.c)} /><div style={{ fontSize: 28, marginBottom: 8 }}>{m.i}</div><h3 style={{ margin: "0 0 6px", ...neon(m.c), fontSize: 18 }}>{m.t}</h3><p style={{ fontSize: 12, color: "#667", margin: 0, lineHeight: 1.6 }}>{m.d}</p><div style={{ ...TAG(m.c), marginTop: 12 }}>{m.tg}</div></div>;
+          {[{ k: "normal", i: "📈", t: "일반 모드", d: "순수 실력으로 승부. " + SEASON_DAYS + "일 안에 AI를 이겨라.", c: "#6fb0b4", tg: "CLASSIC" }, { k: "force", i: "🐋", t: "세력 모드", d: "특수 능력으로 시장을 지배하라.", c: "#b183ac", tg: "WHALE" }, { k: "replay", ep: "covid2020", i: "🕰️", t: "실전 모드", d: "실제 과거 시세로 트레이딩. 정체는 끝나고 공개. (2020 코스피 구간)", c: "#c8b158", tg: "REAL" }].map(function(m) {
+            return <div key={m.k} style={{ ...PNL, width: 280, cursor: "pointer", transition: "all 0.3s" }} onClick={function() { initGame(m.k, m.ep); if (m.k !== "replay" && !coachSeen.intro) { setCoach({ type: "intro" }); setCoachSeen(function(p) { return { ...p, intro: true }; }); } }}><div style={GLW(m.c)} /><div style={{ fontSize: 28, marginBottom: 8 }}>{m.i}</div><h3 style={{ margin: "0 0 6px", ...neon(m.c), fontSize: 18 }}>{m.t}</h3><p style={{ fontSize: 12, color: "#667", margin: 0, lineHeight: 1.6 }}>{m.d}</p><div style={{ ...TAG(m.c), marginTop: 12 }}>{m.tg}</div></div>;
           })}
         </div>
         <button style={{ ...BTN("#778"), marginTop: 30 }} onClick={function() { setScreen("menu"); }}>← 뒤로</button>
@@ -342,10 +380,26 @@ export default function App() {
             <div style={{ fontSize: 10, letterSpacing: 4, color: "#778", marginBottom: 10 }}>[ 시즌 {seasonNum} 종료 ]</div>
             <h2 style={{ ...neon(profitRate >= 0 ? "#58a878" : "#cc6b66"), fontSize: 32, margin: 0 }}>{profitRate >= 0 ? "수익 달성!" : "손실 발생"}</h2>
           </div>
-          <div style={{ ...PNL, marginBottom: 16, textAlign: "center" }}><div style={GLW(profitRate >= 0 ? "#58a878" : "#cc6b66")} /><div style={{ fontSize: 13, color: "#778", marginBottom: 4 }}>최종 수익률</div><div style={{ fontSize: 34, fontWeight: 900, ...neon(profitRate >= 0 ? "#58a878" : "#cc6b66") }}>{fmtP(profitRate)}</div><div style={{ fontSize: 12, color: "#778", marginTop: 6 }}>총 자산: {won(totalAssets)} / {mode === "force" ? "세력" : "일반"} 모드</div></div>
+          <div style={{ ...PNL, marginBottom: 16, textAlign: "center" }}><div style={GLW(profitRate >= 0 ? "#58a878" : "#cc6b66")} /><div style={{ fontSize: 13, color: "#778", marginBottom: 4 }}>최종 수익률</div><div style={{ fontSize: 34, fontWeight: 900, ...neon(profitRate >= 0 ? "#58a878" : "#cc6b66") }}>{fmtP(profitRate)}</div><div style={{ fontSize: 12, color: "#778", marginTop: 6 }}>총 자산: {won(totalAssets)} / {mode === "force" ? "세력" : mode === "replay" ? "실전" : "일반"} 모드</div></div>
           <div style={{ ...PNL, marginBottom: 16 }}><div style={GLW("#c8b158")} /><h3 style={{ margin: "0 0 12px", fontSize: 13, ...neon("#c8b158") }}>◆ 최종 순위</h3>
             {board.map(function(r, i) { return <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", background: r.isPlayer ? "#6fb0b408" : "transparent", borderRadius: 4, borderLeft: "3px solid " + (i === 0 ? "#c8b158" : i === 1 ? "#aaa" : i === 2 ? "#a65" : "#333"), marginBottom: 4 }}><span style={{ fontSize: 14, fontWeight: 900, color: i === 0 ? "#c8b158" : "#778", width: 24 }}>#{i + 1}</span><span style={{ fontSize: 16 }}>{r.avatar}</span><span style={{ flex: 1, fontSize: 12, color: r.isPlayer ? "#6fb0b4" : "#aab", fontWeight: r.isPlayer ? 700 : 400 }}>{r.name}</span><span style={{ fontSize: 13, fontWeight: 700, color: r.profitRate >= 0 ? "#58a878" : "#cc6b66" }}>{fmtP(r.profitRate)}</span><span style={{ fontSize: 10, color: "#778" }}>{wonK(r.totalAssets)}</span></div>; })}
           </div>
+          {episode && (function() {
+            var ratios = episode.roster.map(function(st) { var se = episode.series[st.id]; return se.close[se.close.length - 1] / se.close[0]; });
+            var bh = ratios.reduce(function(a, b) { return a + b; }, 0) / ratios.length - 1, beat = profitRate >= bh;
+            return <div style={{ ...PNL, marginBottom: 16 }}><div style={GLW("#c8b158")} />
+              <div style={{ fontSize: 9, letterSpacing: 2, color: "#778", marginBottom: 4 }}>[ 실전 구간 공개 ]</div>
+              <h3 style={{ margin: "0 0 4px", fontSize: 15, ...neon("#c8b158") }}>🕰️ {episode.revealTitle}</h3>
+              <div style={{ fontSize: 10, color: "#8ab", marginBottom: 8 }}>{episode.period}</div>
+              <div style={{ fontSize: 11, color: "#c8d6e5", lineHeight: 1.7, marginBottom: 10 }}>{episode.revealSummary}</div>
+              <div style={{ display: "flex", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+                <div style={{ flex: "1 1 120px", background: "#0a0e1780", borderRadius: 6, padding: "8px 10px" }}><div style={{ fontSize: 9, color: "#778" }}>5종목 균등 보유만 했다면</div><div style={{ fontSize: 16, fontWeight: 900, color: bh >= 0 ? "#58a878" : "#cc6b66" }}>{fmtP(bh)}</div></div>
+                <div style={{ flex: "1 1 120px", background: "#0a0e1780", borderRadius: 6, padding: "8px 10px" }}><div style={{ fontSize: 9, color: "#778" }}>내 성적</div><div style={{ fontSize: 16, fontWeight: 900, color: profitRate >= 0 ? "#58a878" : "#cc6b66" }}>{fmtP(profitRate)}</div></div>
+              </div>
+              <div style={{ fontSize: 11, color: beat ? "#58a878" : "#c8b158", fontWeight: 700, marginBottom: 8 }}>{beat ? "👏 단순 보유보다 잘했어요!" : "이 구간은 단순 보유가 더 나았어요 — 매매가 늘 이득은 아니에요."}</div>
+              <div style={{ padding: "8px 10px", background: "#0a0e1780", borderRadius: 4, borderLeft: "3px solid #c8b158" }}><span style={{ fontSize: 9, color: "#c8b158", fontWeight: 700 }}>교훈</span><div style={{ fontSize: 11, color: "#aab", marginTop: 3, lineHeight: 1.6 }}>{episode.lesson}</div></div>
+            </div>;
+          })()}
           {eventLog && eventLog.length > 0 && (function() {
             var stl = analyzeStyle(eventLog, priceHistory, STOCKS, AI_PLAYERS), ai = stl.matchedAi || {};
             var termId = ({ momentum: "momentum", value: "value", contrarian: "contrarian", aggressive: "aggressive", random: "trend" })[ai.strategy] || "trend";
@@ -375,7 +429,10 @@ export default function App() {
   }
 
   // ── GAME ──
-  var sel = STOCKS.find(function(s) { return s.id === selectedStock; });
+  var isReplay = mode === "replay" && !!episode;
+  var activeStocks = isReplay ? episode.roster : STOCKS;
+  var seasonLen = isReplay ? episode.dates.length : SEASON_DAYS;
+  var sel = activeStocks.find(function(s) { return s.id === selectedStock; }) || STOCKS.find(function(s) { return s.id === selectedStock; });
   var sp = prices[selectedStock] || 0, sh = priceHistory[selectedStock] || [], svol = volumes[selectedStock] || [];
   var sc = sh.length >= 2 ? (sh[sh.length - 1] - sh[sh.length - 2]) / sh[sh.length - 2] : 0;
   var held = portfolio[selectedStock] || 0, sdh = dayHighLow[selectedStock] || { high: sp, low: sp, open: sp };
@@ -482,10 +539,11 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 15, fontWeight: 900, ...neon("#6fb0b4"), letterSpacing: 2 }}>DARK<span style={neon("#b183ac")}>TRADE</span></span>
             {mode === "force" && <span style={TAG("#b183ac")}>세력</span>}
+            {isReplay && <span style={TAG("#c8b158")}>🕰️ {episode.playLabel}</span>}
             <span style={TAG(myRank === 1 ? "#c8b158" : myRank <= 3 ? "#58a878" : "#778")}>#{myRank}위</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 11 }}>
-            <span style={{ color: "#778" }}>DAY <span style={{ color: "#6fb0b4", fontWeight: 700 }}>{day}</span>/{SEASON_DAYS}</span>
+            <span style={{ color: "#778" }}>DAY <span style={{ color: "#6fb0b4", fontWeight: 700 }}>{day}</span>/{seasonLen}</span>
             <button style={{ ...BTN("#778"), padding: "3px 10px", fontSize: 10 }} onClick={function() { setScreen("menu"); }}>나가기</button>
           </div>
         </div>
@@ -561,7 +619,7 @@ export default function App() {
           {/* LEFT: MARKET */}
           <div style={{ flex: "1 1 260px", minWidth: 260 }}>
             <div style={{ ...PNL, marginBottom: 10 }}><div style={GLW("#6fb0b4")} /><div style={{ fontSize: 9, color: "#778", letterSpacing: 2, marginBottom: 8 }}>종목 목록</div>
-              {STOCKS.map(function(st) {
+              {activeStocks.map(function(st) {
                 var p = prices[st.id] || st.basePrice, h = priceHistory[st.id] || [st.basePrice];
                 var ch = h.length >= 2 ? (h[h.length - 1] - h[h.length - 2]) / h[h.length - 2] : 0, isUp = ch >= 0, isSel = selectedStock === st.id, pump = pendingPumps.some(function(pp) { return pp.stockId === st.id; });
                 return <div key={st.id} onClick={function() { setSelectedStock(st.id); setInfoTab("chart"); setRightTab("detail"); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 8px", borderRadius: 6, cursor: "pointer", background: isSel ? "#6fb0b408" : "transparent", border: "1px solid " + (isSel ? "#6fb0b440" : "transparent"), marginBottom: 2, transition: "all 0.15s" }}>
@@ -598,8 +656,8 @@ export default function App() {
               <div style={{ display: "flex", gap: 4, marginBottom: 8, borderBottom: "1px solid #1a2a4a", paddingBottom: 6 }}>
                 {[{ k: "chart", l: "📊 차트" }, { k: "info", l: "📋 정보" }, { k: "news", l: "📰 뉴스" }].map(function(t) { return <button key={t.k} onClick={function() { setInfoTab(t.k); }} style={{ background: infoTab === t.k ? "#6fb0b415" : "transparent", border: "1px solid " + (infoTab === t.k ? "#6fb0b4" : "#222"), color: infoTab === t.k ? "#6fb0b4" : "#778", padding: "3px 12px", borderRadius: 4, cursor: "pointer", fontFamily: "inherit", fontSize: 10, fontWeight: infoTab === t.k ? 700 : 400 }}>{t.l}</button>; })}
               </div>
-              {infoTab === "chart" && <div><StockChart data={sh} /><VolumeChart volumes={svol} /><div style={{ display: "flex", gap: 10, marginTop: 6, fontSize: 9, color: "#778", flexWrap: "wrap" }}><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>시가 <span style={{ color: "#aab" }}>{won(sdh.open)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>고가 <span style={{ color: "#cc6b66" }}>{won(sdh.high)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>저가 <span style={{ color: "#5e84bd" }}>{won(sdh.low)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("volume"); }}>거래량 <span style={{ color: "#aab" }}>{fmtF(sVolLast)}</span></span><span style={{ cursor: "pointer", color: "#5f9ec2" }} onClick={function() { openTerm("candle"); }}>📚 캔들이란?</span></div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginTop: 8 }}>{[["시총", wonK(sMcap), "#c8b158", "marketcap"], ["PER", (sel ? sel.per : 0) + "x", "#aab", "per"], ["변동성", (sel ? (sel.volatility * 100).toFixed(1) : 0) + "%", "#bf869e", "volatility"]].map(function(t, i) { return <div key={i} onClick={function() { openTerm(t[3]); }} title="탭하면 설명" style={{ background: "#0a0e1780", padding: "5px 6px", borderRadius: 4, textAlign: "center", cursor: "pointer" }}><div style={{ fontSize: 8, color: "#667" }}>{t[0]} <span style={{ color: "#5f9ec2" }}>ⓘ</span></div><div style={{ fontSize: 12, fontWeight: 700, color: t[2] }}>{t[1]}</div></div>; })}</div></div>}
-              {infoTab === "info" && <div><div style={{ fontSize: 10, color: "#667", lineHeight: 1.6, marginBottom: 10, padding: "6px 8px", background: "#0a0e1780", borderRadius: 4, borderLeft: "3px solid " + secC(sel ? sel.sector : "") }}>{sel ? sel.desc : ""}</div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 14px" }}>{[["시가총액", wonK(sMcap), "#c8b158", "marketcap"], ["PER", (sel ? sel.per : 0) + "x", "#aab", "per"], ["발행주식", fmtN(sel ? sel.shares : 0), "#aab", "shares"], ["변동성", (sel ? (sel.volatility * 100).toFixed(1) : 0) + "%", "#bf869e", "volatility"], ["시즌 고가", won(s52.high), "#cc6b66"], ["시즌 저가", won(s52.low), "#5e84bd"], ["시즌 수익률", fmtP(sTotRet), sTotRet >= 0 ? "#58a878" : "#cc6b66", "returnrate"], ["CEO", sel ? sel.ceo : "", "#aab"], ["설립", sel ? sel.founded + "년" : "", "#aab"], ["직원수", sel ? sel.employees + "명" : "", "#aab"]].map(function(t, i) { var tid = t[3]; return <div key={i} onClick={tid ? function() { openTerm(tid); } : undefined} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #111a2d", fontSize: 11, cursor: tid ? "pointer" : "default" }}><span style={{ color: "#778" }}>{t[0]}{tid ? <span style={{ color: "#5f9ec2" }}> ⓘ</span> : null}</span><span style={{ color: t[2], fontWeight: 700 }}>{t[1]}</span></div>; })}</div><div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid #1a2a4a" }}>{sel && sel.market === "US" && <div style={{ fontSize: 10, color: "#8ab", marginBottom: 8, lineHeight: 1.5 }}>💵 미국 주식 — 현재가 약 <b>${(sp / USD_KRW).toFixed(0)}</b> × 환율 ₩{USD_KRW.toLocaleString()} ≈ {won(sp)} <span onClick={function() { openTerm("exchange"); }} style={{ color: "#5f9ec2", cursor: "pointer" }}>📚</span></div>}<div style={{ fontSize: 9, color: "#778", letterSpacing: 1, marginBottom: 5 }}>💡 이 종목은?</div><div style={{ display: "flex", flexDirection: "column", gap: 5 }}>{interpretStock(sel).map(function(it, i) { var c = it.tone === "warn" ? "#c69a64" : it.tone === "info" ? "#8ab" : "#58a878"; return <div key={i} onClick={it.term ? function() { openTerm(it.term); } : undefined} style={{ display: "flex", gap: 6, fontSize: 10, cursor: it.term ? "pointer" : "default", lineHeight: 1.4 }}><span style={{ color: c, fontWeight: 700, minWidth: 78 }}>{it.label}</span><span style={{ color: "#aab", flex: 1 }}>{it.text}{it.term ? <span style={{ color: "#5f9ec2" }}> 📚</span> : null}</span></div>; })}</div><div style={{ fontSize: 8, color: "#667", marginTop: 8 }}>* 시총·PER 등 지표는 2024년 기준 근사치입니다 (실시간 값 아님).</div></div>{held > 0 && <div style={{ marginTop: 10, padding: "6px 8px", background: "#c8b15808", border: "1px solid #c8b15830", borderRadius: 4 }}><div style={{ fontSize: 9, color: "#c8b158", letterSpacing: 2, marginBottom: 3 }}>내 포지션</div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 14px" }}>{[["수량", held + "주", "#c8b158"], ["평단가", won(sAvg), "#aab"], ["평가금", won(sp * held), "#c8b158"], ["손익률", fmtP((sp - sAvg) / sAvg), (sp - sAvg) >= 0 ? "#58a878" : "#cc6b66"]].map(function(t, i) { return <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #111a2d", fontSize: 11 }}><span style={{ color: "#778" }}>{t[0]}</span><span style={{ color: t[2], fontWeight: 700 }}>{t[1]}</span></div>; })}</div></div>}</div>}
+              {infoTab === "chart" && <div><StockChart data={sh} /><VolumeChart volumes={svol} /><div style={{ display: "flex", gap: 10, marginTop: 6, fontSize: 9, color: "#778", flexWrap: "wrap" }}><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>시가 <span style={{ color: "#aab" }}>{won(sdh.open)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>고가 <span style={{ color: "#cc6b66" }}>{won(sdh.high)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("open"); }}>저가 <span style={{ color: "#5e84bd" }}>{won(sdh.low)}</span></span><span style={{ cursor: "pointer" }} onClick={function() { openTerm("volume"); }}>거래량 <span style={{ color: "#aab" }}>{fmtF(sVolLast)}</span></span><span style={{ cursor: "pointer", color: "#5f9ec2" }} onClick={function() { openTerm("candle"); }}>📚 캔들이란?</span></div>{!isReplay && <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginTop: 8 }}>{[["시총", wonK(sMcap), "#c8b158", "marketcap"], ["PER", (sel ? sel.per : 0) + "x", "#aab", "per"], ["변동성", (sel ? (sel.volatility * 100).toFixed(1) : 0) + "%", "#bf869e", "volatility"]].map(function(t, i) { return <div key={i} onClick={function() { openTerm(t[3]); }} title="탭하면 설명" style={{ background: "#0a0e1780", padding: "5px 6px", borderRadius: 4, textAlign: "center", cursor: "pointer" }}><div style={{ fontSize: 8, color: "#667" }}>{t[0]} <span style={{ color: "#5f9ec2" }}>ⓘ</span></div><div style={{ fontSize: 12, fontWeight: 700, color: t[2] }}>{t[1]}</div></div>; })}</div>}</div>}
+              {infoTab === "info" && <div><div style={{ fontSize: 10, color: "#667", lineHeight: 1.6, marginBottom: 10, padding: "6px 8px", background: "#0a0e1780", borderRadius: 4, borderLeft: "3px solid " + secC(sel ? sel.sector : "") }}>{sel ? sel.desc : ""}</div>{isReplay ? <div style={{ fontSize: 10, color: "#8ab", lineHeight: 1.6, padding: "8px 10px", background: "#0a0e1780", borderRadius: 4, borderLeft: "3px solid #c8b158" }}>🕰️ 실전 구간 진행 중 — 차트·시세·거래는 실제 과거 데이터예요. 시총·PER·CEO 같은 기업 지표는 이 시기 값이 아니라 숨깁니다.</div> : <div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 14px" }}>{[["시가총액", wonK(sMcap), "#c8b158", "marketcap"], ["PER", (sel ? sel.per : 0) + "x", "#aab", "per"], ["발행주식", fmtN(sel ? sel.shares : 0), "#aab", "shares"], ["변동성", (sel ? (sel.volatility * 100).toFixed(1) : 0) + "%", "#bf869e", "volatility"], ["시즌 고가", won(s52.high), "#cc6b66"], ["시즌 저가", won(s52.low), "#5e84bd"], ["시즌 수익률", fmtP(sTotRet), sTotRet >= 0 ? "#58a878" : "#cc6b66", "returnrate"], ["CEO", sel ? sel.ceo : "", "#aab"], ["설립", sel ? sel.founded + "년" : "", "#aab"], ["직원수", sel ? sel.employees + "명" : "", "#aab"]].map(function(t, i) { var tid = t[3]; return <div key={i} onClick={tid ? function() { openTerm(tid); } : undefined} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #111a2d", fontSize: 11, cursor: tid ? "pointer" : "default" }}><span style={{ color: "#778" }}>{t[0]}{tid ? <span style={{ color: "#5f9ec2" }}> ⓘ</span> : null}</span><span style={{ color: t[2], fontWeight: 700 }}>{t[1]}</span></div>; })}</div><div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid #1a2a4a" }}>{sel && sel.market === "US" && <div style={{ fontSize: 10, color: "#8ab", marginBottom: 8, lineHeight: 1.5 }}>💵 미국 주식 — 현재가 약 <b>${(sp / USD_KRW).toFixed(0)}</b> × 환율 ₩{USD_KRW.toLocaleString()} ≈ {won(sp)} <span onClick={function() { openTerm("exchange"); }} style={{ color: "#5f9ec2", cursor: "pointer" }}>📚</span></div>}<div style={{ fontSize: 9, color: "#778", letterSpacing: 1, marginBottom: 5 }}>💡 이 종목은?</div><div style={{ display: "flex", flexDirection: "column", gap: 5 }}>{interpretStock(sel).map(function(it, i) { var c = it.tone === "warn" ? "#c69a64" : it.tone === "info" ? "#8ab" : "#58a878"; return <div key={i} onClick={it.term ? function() { openTerm(it.term); } : undefined} style={{ display: "flex", gap: 6, fontSize: 10, cursor: it.term ? "pointer" : "default", lineHeight: 1.4 }}><span style={{ color: c, fontWeight: 700, minWidth: 78 }}>{it.label}</span><span style={{ color: "#aab", flex: 1 }}>{it.text}{it.term ? <span style={{ color: "#5f9ec2" }}> 📚</span> : null}</span></div>; })}</div><div style={{ fontSize: 8, color: "#667", marginTop: 8 }}>* 시총·PER 등 지표는 2024년 기준 근사치입니다 (실시간 값 아님).</div></div></div>}{held > 0 && <div style={{ marginTop: 10, padding: "6px 8px", background: "#c8b15808", border: "1px solid #c8b15830", borderRadius: 4 }}><div style={{ fontSize: 9, color: "#c8b158", letterSpacing: 2, marginBottom: 3 }}>내 포지션</div><div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 14px" }}>{[["수량", held + "주", "#c8b158"], ["평단가", won(sAvg), "#aab"], ["평가금", won(sp * held), "#c8b158"], ["손익률", fmtP((sp - sAvg) / sAvg), (sp - sAvg) >= 0 ? "#58a878" : "#cc6b66"]].map(function(t, i) { return <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid #111a2d", fontSize: 11 }}><span style={{ color: "#778" }}>{t[0]}</span><span style={{ color: t[2], fontWeight: 700 }}>{t[1]}</span></div>; })}</div></div>}</div>}
               {infoTab === "news" && <div style={{ maxHeight: 220, overflow: "auto" }}>{sectorNews.length === 0 ? <div style={{ color: "#556", fontSize: 11 }}>뉴스 없음</div> : sectorNews.slice(0, 25).map(function(n, i) { return <div key={i} style={{ padding: "4px 0", borderBottom: "1px solid #111a2d", display: "flex", gap: 6, alignItems: "start" }}><span style={{ color: "#556", fontSize: 9, minWidth: 24 }}>D{n.day}</span><span style={{ ...TAG(n.sector ? secC(n.sector) : "#778"), fontSize: 8, padding: "1px 4px" }}>{n.sector || "매크로"}</span><span style={{ fontSize: 10, color: n.type === "good" ? "#58a878" : n.type === "bad" ? "#cc6b66" : "#667", lineHeight: 1.4, flex: 1 }}>{n.type === "good" ? "▲ " : n.type === "bad" ? "▼ " : "● "}{n.text}</span></div>; })}</div>}
             </div>}
 
@@ -702,7 +760,7 @@ export default function App() {
             </div>}
 
             {/* PROGRESS */}
-            <div style={{ marginTop: 6 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "#667", marginBottom: 3 }}><span>시즌 진행도</span><span>{day}/{SEASON_DAYS}</span></div><div style={{ height: 4, background: "#111a2d", borderRadius: 2, overflow: "hidden" }}><div style={{ height: "100%", width: (day / SEASON_DAYS * 100) + "%", background: "linear-gradient(90deg, #6fb0b4, #b183ac)", borderRadius: 2, transition: "width 0.3s" }} /></div></div>
+            <div style={{ marginTop: 6 }}><div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "#667", marginBottom: 3 }}><span>{isReplay ? "실전 진행도" : "시즌 진행도"}</span><span>{day}/{seasonLen}</span></div><div style={{ height: 4, background: "#111a2d", borderRadius: 2, overflow: "hidden" }}><div style={{ height: "100%", width: (day / seasonLen * 100) + "%", background: "linear-gradient(90deg, #6fb0b4, #b183ac)", borderRadius: 2, transition: "width 0.3s" }} /></div></div>
           </div>
         </div>
       </div>
