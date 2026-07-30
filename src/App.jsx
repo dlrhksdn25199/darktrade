@@ -113,7 +113,10 @@ export default function App() {
       });
       setAiPlayers(rAis); setAiActivity(rActs);
       setPrices(rnp); setPriceHistory(rnh); setVolumes(rnv); setDayHighLow(rndh); setWeek52(rnw);
-      setNews([{ text: episode.playLabel + " — " + (day + 1) + "일차 (정체는 종료 후 공개)", type: "system" }]);
+      // 그날(di)에 매핑된 실제 헤드라인 노출 — 없으면 진행 표시
+      var rNews = (episode.news || []).filter(function(n) { return n.dayIndex === di; }).map(function(n) { return { text: n.text, type: n.type, day: day + 1, sector: null }; });
+      if (rNews.length === 0) rNews = [{ text: episode.playLabel + " — " + (day + 1) + "일차", type: "system", day: day + 1, sector: null }];
+      setNews(rNews); setNewsHistory(function(pp) { return rNews.concat(pp).slice(0, 60); });
       setDay(function(d) { return d + 1; });
       return;
     }
@@ -232,10 +235,27 @@ export default function App() {
         <div style={{ fontSize: 11, letterSpacing: 4, color: "#778", marginBottom: 30 }}>[ 모드 선택 ]</div>
         <div style={{ display: "flex", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
           {[{ k: "normal", i: "📈", t: "일반 모드", d: "순수 실력으로 승부. " + SEASON_DAYS + "일 안에 AI를 이겨라.", c: "#6fb0b4", tg: "CLASSIC" }, { k: "force", i: "🐋", t: "세력 모드", d: "특수 능력으로 시장을 지배하라.", c: "#b183ac", tg: "WHALE" }, { k: "replay", ep: "covid2020", i: "🕰️", t: "실전 모드", d: "실제 과거 시세로 트레이딩. 정체는 끝나고 공개. (2020 코스피 구간)", c: "#c8b158", tg: "REAL" }].map(function(m) {
-            return <div key={m.k} style={{ ...PNL, width: 280, cursor: "pointer", transition: "all 0.3s" }} onClick={function() { initGame(m.k, m.ep); if (m.k !== "replay" && !coachSeen.intro) { setCoach({ type: "intro" }); setCoachSeen(function(p) { return { ...p, intro: true }; }); } }}><div style={GLW(m.c)} /><div style={{ fontSize: 28, marginBottom: 8 }}>{m.i}</div><h3 style={{ margin: "0 0 6px", ...neon(m.c), fontSize: 18 }}>{m.t}</h3><p style={{ fontSize: 12, color: "#667", margin: 0, lineHeight: 1.6 }}>{m.d}</p><div style={{ ...TAG(m.c), marginTop: 12 }}>{m.tg}</div></div>;
+            return <div key={m.k} style={{ ...PNL, width: 280, cursor: "pointer", transition: "all 0.3s" }} onClick={function() { if (m.k === "replay") { setScreen("episodes"); return; } initGame(m.k); if (!coachSeen.intro) { setCoach({ type: "intro" }); setCoachSeen(function(p) { return { ...p, intro: true }; }); } }}><div style={GLW(m.c)} /><div style={{ fontSize: 28, marginBottom: 8 }}>{m.i}</div><h3 style={{ margin: "0 0 6px", ...neon(m.c), fontSize: 18 }}>{m.t}</h3><p style={{ fontSize: 12, color: "#667", margin: 0, lineHeight: 1.6 }}>{m.d}</p><div style={{ ...TAG(m.c), marginTop: 12 }}>{m.tg}</div></div>;
           })}
         </div>
         <button style={{ ...BTN("#778"), marginTop: 30 }} onClick={function() { setScreen("menu"); }}>← 뒤로</button>
+      </div>
+    </div>
+  );
+
+  // ── EPISODES (실전 모드 구간 선택) ──
+  if (screen === "episodes") return (
+    <div style={{ minHeight: "100vh", background: "#0a0e17", color: "#c8d6e5", fontFamily: "-apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', sans-serif" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: 20 }}>
+        <div style={{ fontSize: 11, letterSpacing: 4, color: "#778", marginBottom: 6 }}>[ 실전 모드 · 구간 선택 ]</div>
+        <p style={{ fontSize: 12, color: "#8ab", marginBottom: 24, textAlign: "center", maxWidth: 440, lineHeight: 1.6 }}>실제 과거의 한 구간을 그때 시세·뉴스 그대로 다시 살아봅니다. 어느 시기인지는 <b style={{ color: "#c8b158" }}>끝나고 공개</b> — 뉴스와 주가 반응만 보고 판단하세요.</p>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center", maxWidth: 720 }}>
+          {REPLAY_EPISODES.map(function(ep) {
+            var hint = ({ covid2020: "변동성이 극심한 구간", bull2021: "뜨겁게 달아오른 구간", bear2022: "끈질기게 흘러내린 구간" })[ep.id] || "실제 과거 구간";
+            return <div key={ep.id} style={{ ...PNL, width: 210, cursor: "pointer" }} onClick={function() { initGame("replay", ep.id); }}><div style={GLW("#c8b158")} /><div style={{ fontSize: 26, marginBottom: 6 }}>🕰️</div><h3 style={{ margin: "0 0 6px", ...neon("#c8b158"), fontSize: 16 }}>{ep.playLabel}</h3><p style={{ fontSize: 11, color: "#8ab", margin: "0 0 8px", lineHeight: 1.5 }}>{hint}</p><div style={{ fontSize: 9, color: "#778" }}>한국 {Object.keys(ep.series).length}종목 · {ep.dates.length}거래일</div><div style={{ ...TAG("#c8b158"), marginTop: 10 }}>REAL</div></div>;
+          })}
+        </div>
+        <button style={{ ...BTN("#778"), marginTop: 28 }} onClick={function() { setScreen("modeSelect"); }}>← 뒤로</button>
       </div>
     </div>
   );
